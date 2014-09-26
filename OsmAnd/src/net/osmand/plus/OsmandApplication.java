@@ -115,6 +115,7 @@ public class OsmandApplication extends Application {
 	
 	@Override
 	public void onCreate() {
+		//application starts here
 		long timeToStart = System.currentTimeMillis();
 		if (Version.getAppName(this).equals("OsmAnd~")) {
 			if (android.os.Build.VERSION.SDK_INT >= 9) {
