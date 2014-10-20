@@ -115,7 +115,7 @@ public class OsmandApplication extends Application {
 	
 	@Override
 	public void onCreate() {
-		//application starts here
+		//应用程序入口
 		long timeToStart = System.currentTimeMillis();
 		if (Version.getAppName(this).equals("OsmAnd~")) {
 			if (android.os.Build.VERSION.SDK_INT >= 9) {
@@ -154,7 +154,7 @@ public class OsmandApplication extends Application {
 		
 		routingHelper = new RoutingHelper(this, player);
 		taskManager = new OsmAndTaskManager(this);
-		resourceManager = new ResourceManager(this);
+		resourceManager = new ResourceManager(this);//在此类中开启线程用来渲染本地矢量图片
 		daynightHelper = new DayNightHelper(this);
 		locationProvider = new OsmAndLocationProvider(this);
 		savingTrackHelper = new SavingTrackHelper(this);
@@ -170,12 +170,12 @@ public class OsmandApplication extends Application {
 //		}
 		
 		checkPreferredLocale();
-		startApplication();
+		startApplication();//开启后台服务
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Time to start application " + (System.currentTimeMillis() - timeToStart) + " ms. Should be less < 800 ms");
 		}
 		timeToStart = System.currentTimeMillis();
-		OsmandPlugin.initPlugins(this);
+		OsmandPlugin.initPlugins(this);//构建主界面所需要的部件
 
 		if (LOG.isDebugEnabled()) {
 			LOG.debug("Time to init plugins " + (System.currentTimeMillis() - timeToStart) + " ms. Should be less < 800 ms");
@@ -510,7 +510,7 @@ public class OsmandApplication extends Application {
 						startApplicationBackground();
 					}
 				});
-		startDialog.run();
+		startDialog.run();//以创建新线程的方法开启后台服务
 
 		Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());
 
@@ -538,7 +538,7 @@ public class OsmandApplication extends Application {
 					osmandSettings.NATIVE_RENDERING_FAILED.set(true);
 					startDialog.startTask(getString(R.string.init_native_library), -1);
 					RenderingRulesStorage storage = rendererRegistry.getCurrentSelectedRenderer();
-					boolean initialized = NativeOsmandLibrary.getLibrary(storage, this) != null;
+					boolean initialized = NativeOsmandLibrary.getLibrary(storage, this) != null;//获取本地库，在有瓦片缓存时才返回值
 					osmandSettings.NATIVE_RENDERING_FAILED.set(false);
 					if (!initialized) {
 						LOG.info("Native library could not be loaded!");

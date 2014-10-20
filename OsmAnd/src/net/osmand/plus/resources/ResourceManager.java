@@ -141,7 +141,7 @@ public class ResourceManager {
 		
 		this.context = context;
 		this.renderer = new MapRenderRepositories(context);
-		asyncLoadingThread.start();
+		asyncLoadingThread.start();//新的线程，死循环监听堆栈请求
 		renderingBufferImageThread = new HandlerThread("RenderingBaseImage");
 		renderingBufferImageThread.start();
 
@@ -358,6 +358,7 @@ public class ResourceManager {
 			}
 			Bitmap bmp = null;
 			if (req.tileSource instanceof SQLiteTileSource) {
+				//从网络下载瓦片
 				try {
 					long[] tm = new long[1];
 					bmp = ((SQLiteTileSource) req.tileSource).getImage(req.xTile, req.yTile, req.zoom, tm);
@@ -372,6 +373,7 @@ public class ResourceManager {
 					clearTiles();
 				}
 			} else {
+				//本地有tile的缓存文件，从文件中读取
 				File en = new File(req.dirWithTiles, req.tileId);
 				if (en.exists()) {
 					try {

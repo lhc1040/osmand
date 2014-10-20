@@ -10,6 +10,8 @@ import gnu.trove.set.TLongSet;
 import gnu.trove.set.hash.TLongHashSet;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -77,6 +79,8 @@ public class MapRenderRepositories {
 	private Map<String, BinaryMapIndexReader> files = new ConcurrentHashMap<String, BinaryMapIndexReader>();
 	private Set<String> nativeFiles = new HashSet<String>();
 	private OsmandRenderer renderer;
+	
+//	private int picnum = 0;
 	
 
 
@@ -573,10 +577,16 @@ public class MapRenderRepositories {
 
 	public synchronized void loadMap(RotatedTileBox tileRect, List<IMapDownloaderCallback> notifyList) {
 		interrupted = false;
+		//test
+		tileRect.getCenterLatLon();
+		log.warn("mytag:test：tileRect"+tileRect.getLatitude()+"  "+tileRect.getLongitude());
+		log.warn("mytag:test：tileRect"+tileRect);
+		log.warn("mytag:test：tileRect"+tileRect.getCenterLatLon());
 		if (currentRenderingContext != null) {
 			currentRenderingContext = null;
 		}
 		try {
+			log.warn("counter here!!!");
 			// find selected rendering type
 			OsmandApplication app = ((OsmandApplication) context.getApplicationContext());
 			boolean nightMode = app.getDaynightHelper().isNightMode();
@@ -610,6 +620,7 @@ public class MapRenderRepositories {
 			NativeOsmandLibrary nativeLib = !prefs.SAFE_MODE.get() ? NativeOsmandLibrary.getLibrary(storage, context) : null;
 
 			// prevent editing
+			//tileRect.setLatLonCenter(12.12457, 24.4865);
 			requestedBox = new RotatedTileBox(tileRect);
 			
 
@@ -708,8 +719,24 @@ public class MapRenderRepositories {
 				} else {
 					// better picture ? 
 					bmp = Bitmap.createBitmap(currentRenderingContext.width, currentRenderingContext.height, Config.ARGB_8888);
-				}
+				}//这里产生的bmp是背景图，纯色
 			}
+			
+			//将生成的bmp保存成图片格式存储在本地
+//			String name = "pic"+picnum+".png";
+//			File f =new File("/sdcard/osmpng/",name);
+//			try{
+//			f.createNewFile();
+//			FileOutputStream out = new FileOutputStream(f);
+//			bmp.compress(Bitmap.CompressFormat.PNG, 90, out);
+//			out.flush();
+//			out.close();
+//			log.warn("mytag:图片已保存"+picnum);
+//			}catch(IOException  e){
+//				e.printStackTrace();
+//			}
+//			picnum = picnum+1;
+			
 			this.bmp = bmp;
 			this.bmpLocation = tileRect;
 			
@@ -717,6 +744,7 @@ public class MapRenderRepositories {
 				renderer.generateNewBitmapNative(currentRenderingContext, nativeLib, cNativeObjects, bmp, renderingReq, notifyList);
 			} else {
 				renderer.generateNewBitmap(currentRenderingContext, cObjects, bmp, renderingReq, notifyList);
+				//在bmp上画出线条及多边形等操作
 			}
 			// Force to use rendering request in order to prevent Garbage Collector when it is used in C++
 			if(renderingReq != null){

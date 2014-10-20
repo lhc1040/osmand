@@ -68,7 +68,7 @@ public class AsyncLoadingThread extends Thread {
 
 	@Override
 	public void run() {
-		while (true) {
+		while (true) {//死循环监测堆栈requests
 			try {
 				boolean tileLoaded = false;
 				boolean amenityLoaded = false;
@@ -84,6 +84,7 @@ public class AsyncLoadingThread extends Thread {
 				while (!requests.isEmpty()) {
 					Object req = requests.pop();
 					if (req instanceof TileLoadDownloadRequest) {
+						//此段为在联网条件下从服务器下载瓦片所调用的操作
 						TileLoadDownloadRequest r = (TileLoadDownloadRequest) req;
 						tileLoaded |= resourceManger.getRequestedImageTile(r) != null;
 					} else if (req instanceof TransportLoadRequest) {
@@ -101,6 +102,7 @@ public class AsyncLoadingThread extends Thread {
 					} else if (req instanceof MapLoadRequest) {
 						if (!mapLoaded) {
 							MapLoadRequest r = (MapLoadRequest) req;
+							//如果req是MapLoadRequest实体，则进行loadmap操作
 							resourceManger.getRenderer().loadMap(r.tileBox, resourceManger.getMapTileDownloader().getDownloaderCallbacks());
 							mapLoaded = true;
 						}

@@ -3,6 +3,9 @@ package net.osmand.plus.render;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,6 +38,7 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.graphics.Bitmap.Config;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
@@ -72,6 +76,9 @@ public class OsmandRenderer {
 	private DisplayMetrics dm;
 
 	private TextRenderer textRenderer;
+	
+	private int picnum = 1;
+	//private int subpngnum = 1;
 
 	public class MapDataObjectPrimitive {
 		BinaryMapDataObject obj;
@@ -236,6 +243,7 @@ public class OsmandRenderer {
 	
 	public void generateNewBitmap(RenderingContext rc, List<BinaryMapDataObject> objects, Bitmap bmp, 
 				RenderingRuleSearchRequest render, final List<IMapDownloaderCallback> notifyList) {
+		log.warn("mytag:here or not?");
 		long now = System.currentTimeMillis();
 		// fill area
 		Canvas cv = new Canvas(bmp);
@@ -279,9 +287,85 @@ public class OsmandRenderer {
 					+ "(%s points, %s points inside, %s of %s objects visible)",//$NON-NLS-1$
 					time, time - beforeIconTextTime, rc.pointCount, rc.pointInsideCount, rc.visible, rc.allObjects);
 			log.info(rc.renderingDebugInfo);
+			
 
+			//Bitmap bmp1 = Bitmap.createScaledBitmap(bmp, 256, 256, true);
+			log.warn("mytag:bmp.height"+bmp.getDensity()+cv.getDensity()+rc.zoom);
+			//rc.zoom表示的是缩放等级
+			
+			String name1 = "pic"+picnum+".png";
+			File f1 =new File("/sdcard/osmpng/",name1);
+			try{
+			f1.createNewFile();
+			FileOutputStream out1 = new FileOutputStream(f1);
+			bmp.compress(Bitmap.CompressFormat.PNG, 90, out1);
+			out1.flush();
+			out1.close();
+			log.warn("mytag:图片已保存"+picnum);
+			}catch(IOException  e){
+				e.printStackTrace();
+			}
+			//int picblock = 3;//picblock的平方即将图片划分的块数
+			int columnum = cv.getWidth()/256;  
+			int rownum = cv.getHeight()/256;
+			int subpngnum = 1;
+			for(int i=0;i<rownum;i++){
+				for(int j=0;j<columnum;j++){
+					Rect r = new Rect(j*256, i*256, (j+1)*256, (i+1)*256);
+					Bitmap temp =cutBitmap(bmp,r,Config.ARGB_8888);
+					cv.setBitmap(temp);
+					
+					
+					String name = "pic"+picnum+"-"+subpngnum +".png";
+					File f =new File("/sdcard/osmpng/",name);
+					try{
+					f.createNewFile();
+					FileOutputStream out = new FileOutputStream(f);
+					temp.compress(Bitmap.CompressFormat.PNG, 90, out);
+					out.flush();
+					out.close();
+					log.warn("mytag:图片已保存"+picnum+"-"+subpngnum);
+					}catch(IOException  e){
+						e.printStackTrace();
+					}
+					subpngnum = subpngnum+1;
+					cv.setBitmap(bmp);
+				}
+			}
+			
+//			Rect r = new Rect(0, 0, cv.getWidth()/3, cv.getHeight()/3);
+//			Bitmap temp =cutBitmap(bmp,r,Config.ARGB_8888);
+//			cv.setBitmap(temp);
+//			
+//			
+//			
+//			String name = "pic"+picnum+".png";
+//			File f =new File("/sdcard/osmpng/",name);
+//			try{
+//			f.createNewFile();
+//			FileOutputStream out = new FileOutputStream(f);
+//			temp.compress(Bitmap.CompressFormat.PNG, 90, out);
+//			out.flush();
+//			out.close();
+//			log.warn("mytag:图片已保存"+picnum);
+//			}catch(IOException  e){
+//				e.printStackTrace();
+//			}
+			picnum = picnum+1;
 		}
 	}
+	
+	public static Bitmap cutBitmap(Bitmap mBitmap, Rect r, Bitmap.Config config) { 
+	    int width = r.width(); 
+	    int height = r.height(); 
+	 
+	    Bitmap croppedImage = Bitmap.createBitmap(width, height, config); 
+	 
+	    Canvas cvs = new Canvas(croppedImage); 
+	    Rect dr = new Rect(0, 0, width, height); 
+	    cvs.drawBitmap(mBitmap, r, dr, null); 
+	    return croppedImage; 
+	} 
 
 	private void notifyListenersWithDelay(final RenderingContext rc, final List<IMapDownloaderCallback> notifyList, final Handler h) {
 		h.postDelayed(new Runnable() {
