@@ -8,12 +8,14 @@ import java.util.Stack;
 
 import net.osmand.PlatformUtil;
 import net.osmand.ResultMatcher;
+import net.osmand.data.QuadRect;
 import net.osmand.data.RotatedTileBox;
 import net.osmand.data.TransportStop;
 import net.osmand.map.ITileSource;
 import net.osmand.map.MapTileDownloader.DownloadRequest;
 import net.osmand.map.MapTileDownloader.IMapDownloaderCallback;
 import net.osmand.plus.BusyIndicator;
+import net.osmand.util.MapUtils;
 
 import org.apache.commons.logging.Log;
 
@@ -36,6 +38,7 @@ public class AsyncLoadingThread extends Thread {
 	
 	
 	private final ResourceManager resourceManger;
+	
 
 	public AsyncLoadingThread(ResourceManager resourceManger) {
 		super("Loader map objects (synchronizer)"); //$NON-NLS-1$
@@ -103,7 +106,53 @@ public class AsyncLoadingThread extends Thread {
 						if (!mapLoaded) {
 							MapLoadRequest r = (MapLoadRequest) req;
 							//如果req是MapLoadRequest实体，则进行loadmap操作
+							//r.tileBox.containsLatLon(lat, lon);
+							
+							int LeftTopTilex = (int)r.tileBox.getLeftTopTile(r.tileBox.getZoom()).x;
+							int LeftTopTiley = (int)r.tileBox.getLeftTopTile(r.tileBox.getZoom()).y;
+							
+							int RightBottomTilex = (int)r.tileBox.getRightBottomTile(r.tileBox.getZoom()).x;
+							int RightBottomTiley = (int)r.tileBox.getRightBottomTile(r.tileBox.getZoom()).y;
+							
+//							log.warn("mytag:test：经度："+r.tileBox.getLatitude()+"  纬度："+r.tileBox.getLongitude());
+//							log.warn("mytag:test：左上角经纬度："+r.tileBox.getLeftTopLatLon().getLongitude()+"  "+r.tileBox.getLeftTopLatLon().getLatitude());
+//							log.warn("mytag:test：右下角经纬度："+r.tileBox.getRightBottomLatLon());
+//							
+//							log.warn("mytag:test：LeftTopTilex："+LeftTopTilex+"  LeftTopTiley："+LeftTopTiley);
+//							log.warn("mytag:test：RightBottomTiley："+RightBottomTilex+"  RightBottomTiley："+RightBottomTiley);
+//							
+//							int testx =(int)MapUtils.getTileNumberX(r.tileBox.getZoom(), r.tileBox.getLongitude());
+//							int testy =(int)MapUtils.getTileNumberY(r.tileBox.getZoom(), r.tileBox.getLatitude());
+//							
+//							log.warn("mytag:test：testx："+testx+"  testy："+testy);
+							
+						    
+						    //将获取到的瓦片分布转换成经纬度范围并存储在相应的box中
+							List<QuadRect>  BoxArray = new ArrayList<QuadRect>();
+							int zoom = r.tileBox.getZoom();
+							for(int tilex=LeftTopTilex;tilex<=RightBottomTilex;tilex++){
+								for(int tiley=LeftTopTiley;tiley<=RightBottomTiley;tiley++){
+									
+									double top = tile2lat(tiley, zoom);
+									double bottom = tile2lat(tiley + 1, zoom);
+									double left = tile2lon(tilex, zoom);
+									double right = tile2lon(tilex + 1, zoom);
+									QuadRect tileBox = new QuadRect( left,  top,  right,  bottom);
+									
+									BoxArray.add(tileBox);
+								}
+								
+							}
+//							for(int i=0;i<BoxArray.size();i++){
+//								log.warn("mytag:BoxArray"+(i+1)+":  "+BoxArray.get(i));
+//							}//
+							
+							
+//							for(int i = 0;i<BoxArray.size();i++){
+//								resourceManger.getRenderer().loadMapforTile(r.tileBox,BoxArray.get(i), resourceManger.getMapTileDownloader().getDownloaderCallbacks());
+//							}
 							resourceManger.getRenderer().loadMap(r.tileBox, resourceManger.getMapTileDownloader().getDownloaderCallbacks());
+							
 							mapLoaded = true;
 						}
 					}
@@ -130,6 +179,15 @@ public class AsyncLoadingThread extends Thread {
 			}
 		}
 	}
+	
+	static double tile2lon(int x, int z) {
+	     return x / Math.pow(2.0, z) * 360.0 - 180;
+	  }
+	 
+	static double tile2lat(int y, int z) {
+	    double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, z);
+	    return Math.toDegrees(Math.atan(Math.sinh(n)));
+	  }
 
 	public void requestToLoadImage(TileLoadDownloadRequest req) {
 		requests.push(req);

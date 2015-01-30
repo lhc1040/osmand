@@ -20,6 +20,7 @@ import net.osmand.binary.BinaryMapDataObject;
 import net.osmand.binary.BinaryMapIndexReader.TagValuePair;
 import net.osmand.data.QuadRect;
 import net.osmand.data.QuadTree;
+import net.osmand.data.RotatedTileBox;
 import net.osmand.map.MapTileDownloader.IMapDownloaderCallback;
 import net.osmand.plus.render.TextRenderer.TextDrawInfo;
 import net.osmand.render.RenderingRuleProperty;
@@ -74,11 +75,15 @@ public class OsmandRenderer {
 	private final Context context;
 
 	private DisplayMetrics dm;
+	private MapRenderRepositories m;
 
 	private TextRenderer textRenderer;
 	
 	private int picnum = 1;
 	//private int subpngnum = 1;
+	private static int xtile = 0;
+	private static int ytile = 0;
+	private RotatedTileBox testBox = null;
 
 	public class MapDataObjectPrimitive {
 		BinaryMapDataObject obj;
@@ -224,6 +229,9 @@ public class OsmandRenderer {
 				rc.allObjects++;
 				BinaryMapDataObject mObj = array.get(i).obj;
 				TagValuePair pair = mObj.getMapIndex().decodeType(mObj.getTypes()[array.get(i).typeInd]);
+				int temp1 = array.get(i).typeInd;
+				int temp2 =	mObj.getTypes()[array.get(i).typeInd];
+				
 				if (objOrder == 0) {
 					if (array.get(i).order > minPolygonSize + ((int) array.get(i).order)) {
 						continue;
@@ -240,13 +248,38 @@ public class OsmandRenderer {
 				}
 			}
 		}
-	
-	public void generateNewBitmap(RenderingContext rc, List<BinaryMapDataObject> objects, Bitmap bmp, 
+	public static String getTileNumber(final double lat, final double lon, final int zoom) {
+	    xtile = (int)Math.floor( (lon + 180) / 360 * (1<<zoom) ) ;
+	    ytile = (int)Math.floor( (1 - Math.log(Math.tan(Math.toRadians(lat)) + 1 / Math.cos(Math.toRadians(lat))) / Math.PI) / 2 * (1<<zoom) ) ;
+	    if (xtile < 0)
+	     xtile=0;
+	    if (xtile >= (1<<zoom))
+	     xtile=((1<<zoom)-1);
+	    if (ytile < 0)
+	     ytile=0;
+	    if (ytile >= (1<<zoom))
+	     ytile=((1<<zoom)-1);
+	    return("" + zoom + "/" + xtile + "/" + ytile);
+	   }
+
+static double tile2lon(int x, int z) {
+     return x / Math.pow(2.0, z) * 360.0 - 180;
+  }
+ 
+static double tile2lat(int y, int z) {
+    double n = Math.PI - (2.0 * Math.PI * y) / Math.pow(2.0, z);
+    return Math.toDegrees(Math.atan(Math.sinh(n)));
+  }
+	public void generateNewBitmap(RotatedTileBox tileRect,RenderingContext rc, List<BinaryMapDataObject> objects, Bitmap bmp, 
 				RenderingRuleSearchRequest render, final List<IMapDownloaderCallback> notifyList) {
 		log.warn("mytag:here or not?");
 		long now = System.currentTimeMillis();
 		// fill area
 		Canvas cv = new Canvas(bmp);
+		//Bitmap newbmp = bmp.copy(Config.ARGB_8888, false);
+		
+		//Canvas cv = new Canvas(newbmp);
+		
 		if (rc.defaultColor != 0) {
 			cv.drawColor(rc.defaultColor);
 		}
@@ -259,14 +292,36 @@ public class OsmandRenderer {
 			List<MapDataObjectPrimitive> polygonsArray = new ArrayList<OsmandRenderer.MapDataObjectPrimitive>();
 			List<MapDataObjectPrimitive>  linesArray = new ArrayList<OsmandRenderer.MapDataObjectPrimitive>();
 			sortObjectsByProperOrder(rc, objects, render, pointsArray, polygonsArray, linesArray);
-
+			//将从文件中读取的object分别赋值给polygonsArray linesArray pointsArray
+			
+//			for(int i =0;i<pointsArray.size();i++){
+//				pointsArray.get(i).obj.getId();
+//				log.warn("mymy pointsArray"+(i+1)+" "+pointsArray.get(i).obj.getId());
+//				
+//			}
+//			for(int i =0;i<polygonsArray.size();i++){
+//				pointsArray.get(i).obj.getId();
+//				log.warn("mymy polygonsArray"+(i+1)+" "+polygonsArray.get(i).obj.getId());
+//				
+//			}
+//			for(int i =0;i<linesArray.size();i++){
+//				
+//				log.warn("mymy linesArray"+(i+1)+" "+linesArray.get(i).obj.getId());
+//				
+//			}
+			//pointsArray.get(0);
 			rc.lastRenderedKey = 0;
-
-			drawObject(rc, cv, render, polygonsArray, 0);
+			
+			log.warn("mymy test1");
+			
+			drawObject(rc, cv, render, polygonsArray, 0);//用于执行画操作
 			rc.lastRenderedKey = 5;
 			if (rc.shadowRenderingMode > 1) {
 				drawObject(rc, cv, render, linesArray, 1);
 			}
+			
+			log.warn("mymy test2");
+			
 			rc.lastRenderedKey = 40;
 			drawObject(rc, cv, render, linesArray, 2);
 			rc.lastRenderedKey = 60;
@@ -290,21 +345,75 @@ public class OsmandRenderer {
 			
 
 			//Bitmap bmp1 = Bitmap.createScaledBitmap(bmp, 256, 256, true);
-			log.warn("mytag:bmp.height"+bmp.getDensity()+cv.getDensity()+rc.zoom);
-			//rc.zoom表示的是缩放等级
 			
+			log.warn("mytag:test：经度："+tileRect.getLatitude()+"  纬度："+tileRect.getLongitude());
+			log.warn("mytag:test：左上角经纬度："+tileRect.getLeftTopLatLon());
+			log.warn("mytag:test：右下角经纬度："+tileRect.getRightBottomLatLon());
+			
+			getTileNumber(tileRect.getLatitude(),tileRect.getLongitude(),tileRect.getZoom());
+			log.warn("mytag:中心瓦片所对应的x、y、z分别是："+xtile+"  "+ytile+"   "+tileRect.getZoom());
+			
+			double top = tile2lat(ytile, tileRect.getZoom());
+			double bottom = tile2lat(ytile + 1, tileRect.getZoom());
+			double left = tile2lon(xtile, tileRect.getZoom());
+			double right = tile2lon(xtile + 1, tileRect.getZoom());
+			
+			log.warn("mytag:x、y、z对应的瓦片区域："+top+"  "+bottom+"   "+left+"   "+right);
+			
+			QuadRect dataBox = new QuadRect( left,  top,  right,  bottom);
+			
+			testBox = new RotatedTileBox(tileRect);
+			
+			testBox.setLatLon(dataBox);
+			log.warn("mytag:test1：经度："+tileRect.getLatitude()+"  纬度："+tileRect.getLongitude());
+			log.warn("mytag:test1：左上角经纬度："+testBox.getLeftTopLatLon());
+			log.warn("mytag:test1：右下角经纬度："+testBox.getRightBottomLatLon());
+			
+			testBox.getPixXFromLatLon(top, left);
+			testBox.getPixYFromLatLon(top, left);
+			
+			testBox.getPixXFromLatLon(bottom, right);
+			testBox.getPixYFromLatLon(bottom, right);
+			
+			
+			RotatedTileBox newrect = tileRect.copy();
+			
+			
+			tileRect.getPixXFromLonNoRot(left);
+			tileRect.getPixYFromLatNoRot(top);
+			tileRect.getPixXFromLonNoRot(right);
+			tileRect.getPixYFromLatNoRot(bottom);
+			
+			tileRect.getPixXFromTileXNoRot(xtile);
+			tileRect.getPixYFromTileYNoRot(ytile);
+			tileRect.getPixXFromTile(xtile, ytile, tileRect.getZoom());
+			tileRect.getPixYFromTile(xtile, ytile, tileRect.getZoom());
+			log.warn("mytag:1234："+tileRect.getPixXFromTileXNoRot(xtile)+"  "+tileRect.getPixYFromTileYNoRot(ytile));
+			log.warn("mytag:1234："+tileRect.getPixXFromTile(xtile, ytile, tileRect.getZoom())+"  "+tileRect.getPixYFromTile(xtile, ytile, tileRect.getZoom()));
+			
+			log.warn("mytag:左上角像素："+tileRect.getPixXFromLonNoRot(left)+"  "+tileRect.getPixYFromLatNoRot(top));
+			log.warn("mytag:右下角像素："+tileRect.getPixXFromLonNoRot(right)+"  "+tileRect.getPixYFromLatNoRot(bottom));
+			Rect rect = new Rect((int)testBox.getPixXFromLatLon(top, left), (int)testBox.getPixYFromLatLon(top, left), (int)testBox.getPixXFromLatLon(bottom, right), (int)testBox.getPixYFromLatLon(bottom, right));
+			Bitmap temp1 =cutBitmap(bmp,rect,Config.ARGB_8888);
+			
+			Bitmap bitmap = Bitmap.createBitmap(bmp, tileRect.getPixXFromLonNoRot(left), tileRect.getPixYFromLatNoRot(top), 256, 256); 
+			//QuadRect databox = testBox.getLatLonBounds();
+			//
+			
+			Bitmap bmp1 = Bitmap.createScaledBitmap(temp1,256,256,true);
 			String name1 = "pic"+picnum+".png";
 			File f1 =new File("/sdcard/osmpng/",name1);
 			try{
 			f1.createNewFile();
 			FileOutputStream out1 = new FileOutputStream(f1);
-			bmp.compress(Bitmap.CompressFormat.PNG, 90, out1);
+			bitmap.compress(Bitmap.CompressFormat.PNG, 90, out1);
 			out1.flush();
 			out1.close();
 			log.warn("mytag:图片已保存"+picnum);
 			}catch(IOException  e){
 				e.printStackTrace();
 			}
+			
 			//int picblock = 3;//picblock的平方即将图片划分的块数
 			int columnum = cv.getWidth()/256;  
 			int rownum = cv.getHeight()/256;
@@ -324,7 +433,7 @@ public class OsmandRenderer {
 					temp.compress(Bitmap.CompressFormat.PNG, 90, out);
 					out.flush();
 					out.close();
-					log.warn("mytag:图片已保存"+picnum+"-"+subpngnum);
+					//log.warn("mytag:图片已保存"+picnum+"-"+subpngnum);
 					}catch(IOException  e){
 						e.printStackTrace();
 					}
@@ -332,25 +441,6 @@ public class OsmandRenderer {
 					cv.setBitmap(bmp);
 				}
 			}
-			
-//			Rect r = new Rect(0, 0, cv.getWidth()/3, cv.getHeight()/3);
-//			Bitmap temp =cutBitmap(bmp,r,Config.ARGB_8888);
-//			cv.setBitmap(temp);
-//			
-//			
-//			
-//			String name = "pic"+picnum+".png";
-//			File f =new File("/sdcard/osmpng/",name);
-//			try{
-//			f.createNewFile();
-//			FileOutputStream out = new FileOutputStream(f);
-//			temp.compress(Bitmap.CompressFormat.PNG, 90, out);
-//			out.flush();
-//			out.close();
-//			log.warn("mytag:图片已保存"+picnum);
-//			}catch(IOException  e){
-//				e.printStackTrace();
-//			}
 			picnum = picnum+1;
 		}
 	}
@@ -503,8 +593,11 @@ public class OsmandRenderer {
 			float mult = (float) (1. / MapUtils.getPowZoom(Math.max(31 - (rc.zoom + 8), 0)));
 			for (int i = 0; i < sz; i++) {
 				BinaryMapDataObject o = objects.get(i);
+//				log.warn("test:mytypes: Types()"+(i+1)+"次循环");
+				
 				for (int j = 0; j < o.getTypes().length; j++) {
 					int wholeType = o.getTypes()[j];
+					log.warn("test:mytypes: Types()"+(j+1)+" "+wholeType);
 					int layer = 0;
 					if (o.getPointsLength() > 1) {
 						layer = o.getSimpleLayer();
@@ -513,11 +606,17 @@ public class OsmandRenderer {
 					TagValuePair pair = o.getMapIndex().decodeType(wholeType);
 					if (pair != null) {
 						render.setTagValueZoomLayer(pair.tag, pair.value, rc.zoom, layer, o);
+						
+						log.warn("which xml:pair.tag  "+pair.tag);
+						log.warn("which xml:pair.value  "+pair.value);
+						
+						
 						render.setBooleanFilter(render.ALL.R_AREA, o.isArea());
 						render.setBooleanFilter(render.ALL.R_POINT, o.getPointsLength() == 1);
 						render.setBooleanFilter(render.ALL.R_CYCLE, o.isCycle());
 						if (render.search(RenderingRulesStorage.ORDER_RULES)) {
 							int objectType = render.getIntPropertyValue(render.ALL.R_OBJECT_TYPE);
+							log.warn("test:mymy: objectType"+" "+objectType);
 							int order = render.getIntPropertyValue(render.ALL.R_ORDER);
 							MapDataObjectPrimitive mapObj = new MapDataObjectPrimitive();
 							mapObj.objectType = objectType;
@@ -525,6 +624,7 @@ public class OsmandRenderer {
 							mapObj.typeInd = j;
 							mapObj.obj = o;
 							if(objectType == 3) {
+								log.warn("test:mymy"+"there is a polygons");
 								MapDataObjectPrimitive pointObj = mapObj;
 								pointObj.objectType = 1;
 								double area = polygonArea(mapObj, mult);

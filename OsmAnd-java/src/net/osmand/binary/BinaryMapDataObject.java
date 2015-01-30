@@ -31,7 +31,8 @@ public class BinaryMapDataObject {
 		this.id = id;
 	}
 	
-	protected void setCoordinates(int[] coordinates) {
+	//protected 
+	public void setCoordinates(int[] coordinates) {
 		this.coordinates = coordinates;
 	}
 	
@@ -126,7 +127,8 @@ public class BinaryMapDataObject {
 		this.id = id;
 	}
 	
-	protected void setTypes(int[] types) {
+	//protected 
+	public void setTypes(int[] types) {
 		this.types = types;
 	}
 	

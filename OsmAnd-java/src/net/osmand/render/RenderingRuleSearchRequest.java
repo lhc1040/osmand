@@ -1,5 +1,6 @@
 package net.osmand.render;
 
+import android.util.Log;
 import net.osmand.binary.BinaryMapDataObject;
 import net.osmand.util.Algorithms;
 
@@ -266,6 +267,9 @@ public class RenderingRuleSearchRequest {
 	}
 	
 	public int getIntPropertyValue(RenderingRuleProperty property) {
+		for(int i=0;i<values.length;i++){
+			Log.w("test:myvalues", "values[i]");
+		}
 		return values[property.getId()];
 	}
 	

@@ -115,6 +115,7 @@ public class RotatedTileBox {
 	public void setDensity(float density) {
 		this.density = density;
 	}
+	
 
 	public double getCenterTileX(){
 		return oxTile;
@@ -299,6 +300,24 @@ public class RotatedTileBox {
 		this.lat = lat;
 		this.lon = lon;
 		calculateDerivedFields();
+		
+	}
+	
+	public void setLatLon(QuadRect q) {
+		//this.density = density;
+		//this.latLonBounds = q;
+		//this.tileBounds = new QuadRect(q);
+		this.latLonBounds = new QuadRect(q.left,q.top,q.right,q.bottom);
+//		this.cx = 128;
+//		this.cy = 128;
+		
+		
+//		this.tileBounds = new QuadRect(q);
+//		this.tileLT = new QuadPointDouble(q.left,q.top);
+//		this.tileRT = new QuadPointDouble(q.right,q.top);
+//		this.tileRB = new QuadPointDouble(q.right,q.bottom);
+//		this.tileLB = new QuadPointDouble(q.left,q.bottom);
+		
 	}
 
 	public void setRotate(float rotate) {

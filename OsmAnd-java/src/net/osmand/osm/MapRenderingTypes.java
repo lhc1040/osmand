@@ -376,8 +376,10 @@ public class MapRenderingTypes {
 		try {
 			if(resourceName == null){
 				is = MapRenderingTypes.class.getResourceAsStream("rendering_types.xml"); //$NON-NLS-1$
+				log.warn("test:which xml:rendering_types.xml");
 			} else {
 				is = new FileInputStream(resourceName);
+				log.warn("test:which xml:resourceName"+resourceName);
 			}
 			long time = System.currentTimeMillis();
 			XmlPullParser parser = PlatformUtil.newXMLPullParser();

@@ -626,8 +626,10 @@ public class ResourceManager {
 				log.error(e.getMessage(), e);
 			}
 		}
+		int count = 0;
 		for (File f : files) {
 			progress.startTask(context.getString(R.string.indexing_map) + " " + f.getName(), -1); //$NON-NLS-1$
+			log.warn("test: "+(++count)+"  "+f.getAbsolutePath()+"  "+f.getName());
 			try {
 				BinaryMapIndexReader index = null;
 				try {
