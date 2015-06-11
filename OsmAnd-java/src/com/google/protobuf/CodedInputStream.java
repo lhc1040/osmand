@@ -30,11 +30,16 @@
 
 package com.google.protobuf;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+
+import android.os.Environment;
+import android.util.Log;
 
 /**
  * Reads and decodes protocol message fields.
@@ -483,7 +488,8 @@ public final class CodedInputStream {
 
   // -----------------------------------------------------------------
 
-  private final byte[] buffer;
+  //private 
+  public final byte[] buffer;
   private RandomAccessFile raf;
   private int bufferSize;
   private int bufferSizeAfterLimit;
@@ -661,6 +667,18 @@ public final class CodedInputStream {
    * if the stream has reached a limit created using {@link #pushLimit(int)}.
    */
   public boolean isAtEnd() throws IOException {
+	  
+	  String dir = Environment.getExternalStorageDirectory()+"/";
+      String bufferdir1 = dir+"buffer2.txt";
+		File f =new File(dir,"buffer2.txt");
+		if(!f.exists()){
+			
+			f.createNewFile();
+		}
+
+	    String buffercon ="isAtEnd()"+"  "+ "\n";
+	    writeFileSdcard(bufferdir1,buffercon);
+	    
     return bufferPos == bufferSize && !refillBuffer(false);
   }
 
@@ -671,6 +689,8 @@ public final class CodedInputStream {
   public int getTotalBytesRead() {
       return totalBytesRetired + bufferPos;
   }
+  
+  
 
   /**
    * Called with {@code this.buffer} is empty to read more bytes from the
@@ -702,7 +722,43 @@ public final class CodedInputStream {
     	long remain = raf.length() - raf.getFilePointer();
     	bufferSize = (int) Math.min(remain, buffer.length);
     	if(bufferSize > 0) {
+    		
+    		String dir = Environment.getExternalStorageDirectory()+"/";
+    		String bufferdir = dir+"bufferarray.txt";
+    		String bufferdir1 = dir+"buffer2.txt";
+    		File f =new File(dir,"buffer2.txt");
+    		if(!f.exists()){
+    			
+    			f.createNewFile();
+    		}
+
+    	    String buffercon ="readfully  reload the buffer"+" "+ "\n";
+    	    writeFileSdcard(bufferdir1,buffercon);
+    		
     		raf.readFully(buffer, 0, bufferSize);
+    		
+    		//
+//    		String bufferdir2 = dir+"bufferarray.txt";
+//    		File f2 =new File(dir,"bufferarray.txt");
+////    		FileOutputStream fout = new FileOutputStream(bufferdir,true);
+//    		
+//    		if(!f2.exists()){
+//    			
+//    			f2.createNewFile();
+//    		}
+//    		 String hv ="";
+//    		for(int i =0;i<buffer.length;i++){
+//    			int v = buffer[i] & 0xFF;  
+//    		    hv = Integer.toHexString(v);
+//    		    
+//    		    if(hv.length() == 1){  
+//    		    	hv = "0" + hv;  
+//    		    }  
+//    		    String bufferarray =hv+ "\n";
+//        	    writeFileSdcard(bufferdir2,bufferarray);
+//    		}
+
+    	   
     	} else {
     		bufferSize = -1;
     	}
@@ -731,6 +787,34 @@ public final class CodedInputStream {
       return true;
     }
   }
+  
+  public void writeFileSdcard(String fileName,String message){ 
+
+      try{ 
+
+       //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+      FileOutputStream fout = new FileOutputStream(fileName,true);
+      
+
+       byte [] bytes = message.getBytes(); 
+       
+
+       fout.write(bytes);
+       
+       
+
+        fout.close(); 
+
+       } 
+
+      catch(Exception e){
+
+       e.printStackTrace(); 
+
+      } 
+
+  }
 
   /**
    * Read one byte from the input.
@@ -742,6 +826,24 @@ public final class CodedInputStream {
     if (bufferPos == bufferSize) {
       refillBuffer(true);
     }
+    
+//    String dir = Environment.getExternalStorageDirectory()+"/";
+//	String bufferdir = dir+"buffer2.txt";
+//	File f =new File(dir,"buffer2.txt");
+//	if(!f.exists()){
+//		
+//		f.createNewFile();
+//	}
+//    int v = buffer[bufferPos] & 0xFF;  
+//    String hv = Integer.toHexString(v);
+//    
+//    if(hv.length() == 1){  
+//    	hv = "0" + hv;  
+//    }  
+////    Log.i("buffer", hv);
+//    String buffercon ="buffer[bufferPos]= "+hv+"\n";
+//    writeFileSdcard(bufferdir,buffercon);
+	
     return buffer[bufferPos++];
   }
 
@@ -782,12 +884,25 @@ public final class CodedInputStream {
       // We want to use refillBuffer() and then copy from the buffer into our
       // byte array rather than reading directly into our byte array because
       // the input may be unbuffered.
-      refillBuffer(true);
+      
+      //
+      String dir = Environment.getExternalStorageDirectory()+"/";
+      String bufferdir1 = dir+"buffer2.txt";
+		File f =new File(dir,"buffer2.txt");
+		if(!f.exists()){
+			
+			f.createNewFile();
+		}
 
+	    String buffercon ="readRawBytes(final int size)"+"position 1 "+ "\n";
+	    writeFileSdcard(bufferdir1,buffercon);
+      refillBuffer(true);
+      String buffercon2 ="readRawBytes(final int size)"+"position 2 "+ "\n";
       while (size - pos > bufferSize) {
         System.arraycopy(buffer, 0, bytes, pos, bufferSize);
         pos += bufferSize;
         bufferPos = bufferSize;
+        writeFileSdcard(bufferdir1,buffercon2);
         refillBuffer(true);
       }
 
@@ -916,6 +1031,17 @@ public final class CodedInputStream {
 		} else {
 			totalBytesRetired = (int) pointer;
 			bufferSizeAfterLimit = 0;
+			//
+			String dir = Environment.getExternalStorageDirectory()+"/";
+		      String bufferdir1 = dir+"buffer2.txt";
+				File f =new File(dir,"buffer2.txt");
+				if(!f.exists()){
+					
+					f.createNewFile();
+				}
+
+			    String buffercon ="raf.seek(pointer);  "+pointer+ "\n";
+			    writeFileSdcard(bufferdir1,buffercon);
 			raf.seek(pointer);
 			bufferPos = 0;
 			bufferSize = 0;

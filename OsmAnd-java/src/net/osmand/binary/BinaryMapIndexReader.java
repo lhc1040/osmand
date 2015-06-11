@@ -11,6 +11,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -71,6 +72,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import android.os.Environment;
+
 import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.WireFormat;
 
@@ -110,6 +113,10 @@ public class BinaryMapIndexReader {
 		addressAdapter = new BinaryMapAddressReaderAdapter(this);
 		poiAdapter = new BinaryMapPoiReaderAdapter(this);
 		routeAdapter = new BinaryMapRouteReaderAdapter(this);
+		
+		String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+		writeFileSdcard(dir,"init() "+ " test which init() 1"+"\n");
+		
 		init();
 	}
 	
@@ -122,6 +129,10 @@ public class BinaryMapIndexReader {
 		poiAdapter = new BinaryMapPoiReaderAdapter(this);
 		routeAdapter = new BinaryMapRouteReaderAdapter(this);
 		if(init) {
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"init() "+ " test which init() 2"+"\n");
+			
 			init();
 		}
 	}
@@ -155,21 +166,32 @@ public class BinaryMapIndexReader {
 		while(true){
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"init()"+ " "+String.valueOf(tag)+"\n");
+			
 			switch (tag) {
 			case 0:
 				if(!initCorrectly){
 					throw new IOException("Corrupted file. It should be ended as it starts with version"); //$NON-NLS-1$
 				}
 				return;
-			case OsmandOdb.OsmAndStructure.VERSION_FIELD_NUMBER :
+			case OsmandOdb.OsmAndStructure.VERSION_FIELD_NUMBER ://1
 				version = codedIS.readUInt32();
+				
+//				writeFileSdcard(dir,"VERSION_FIELD"+ " "+version+"\n");
+				
 				break;
-			case OsmandOdb.OsmAndStructure.DATECREATED_FIELD_NUMBER :
+			case OsmandOdb.OsmAndStructure.DATECREATED_FIELD_NUMBER ://18
 				dateCreated = codedIS.readInt64(); 
+//				writeFileSdcard(dir,"DATECREATED_FIELD"+ " "+dateCreated+"\n");
+				
 				break;
-			case OsmandOdb.OsmAndStructure.MAPINDEX_FIELD_NUMBER:
+			case OsmandOdb.OsmAndStructure.MAPINDEX_FIELD_NUMBER://6
 				MapIndex mapIndex = new MapIndex();
 				mapIndex.length = readInt();
+				
+//				writeFileSdcard(dir,"MAPINDEX_FIELD"+ " "+mapIndex.length+"\n");
 				mapIndex.filePointer = codedIS.getTotalBytesRead();
 				int oldLimit = codedIS.pushLimit(mapIndex.length);
 				readMapIndex(mapIndex, false);
@@ -179,9 +201,11 @@ public class BinaryMapIndexReader {
 				mapIndexes.add(mapIndex);
 				indexes.add(mapIndex);
 				break;
-			case OsmandOdb.OsmAndStructure.ADDRESSINDEX_FIELD_NUMBER:
+			case OsmandOdb.OsmAndStructure.ADDRESSINDEX_FIELD_NUMBER://7
 				AddressRegion region = new AddressRegion();
 				region.length = readInt();
+				
+//				writeFileSdcard(dir,"ADDRESSINDEX_FIELD"+ " "+region.length+"\n");
 				region.filePointer = codedIS.getTotalBytesRead();
 				if(addressAdapter != null){
 					oldLimit = codedIS.pushLimit(region.length);
@@ -194,9 +218,11 @@ public class BinaryMapIndexReader {
 				}
 				codedIS.seek(region.filePointer + region.length);
 				break;
-			case OsmandOdb.OsmAndStructure.TRANSPORTINDEX_FIELD_NUMBER:
+			case OsmandOdb.OsmAndStructure.TRANSPORTINDEX_FIELD_NUMBER://4
 				TransportIndex ind = new TransportIndex();
 				ind.length = readInt();
+				
+//				writeFileSdcard(dir,"TRANSPORTINDEX_FIELD"+ " "+ind.length+"\n");
 				ind.filePointer = codedIS.getTotalBytesRead();
 				if (transportAdapter != null) {
 					oldLimit = codedIS.pushLimit(ind.length);
@@ -207,7 +233,7 @@ public class BinaryMapIndexReader {
 				}
 				codedIS.seek(ind.filePointer + ind.length);
 				break;
-			case OsmandOdb.OsmAndStructure.ROUTINGINDEX_FIELD_NUMBER:
+			case OsmandOdb.OsmAndStructure.ROUTINGINDEX_FIELD_NUMBER://9
 				RouteRegion routeReg = new RouteRegion();
 				routeReg.length = readInt();
 				routeReg.filePointer = codedIS.getTotalBytesRead();
@@ -220,7 +246,7 @@ public class BinaryMapIndexReader {
 				}
 				codedIS.seek(routeReg.filePointer + routeReg.length);
 				break;
-			case OsmandOdb.OsmAndStructure.POIINDEX_FIELD_NUMBER:
+			case OsmandOdb.OsmAndStructure.POIINDEX_FIELD_NUMBER://8
 				PoiRegion poiInd = new PoiRegion();
 				poiInd.length = readInt();
 				poiInd.filePointer = codedIS.getTotalBytesRead();
@@ -233,7 +259,7 @@ public class BinaryMapIndexReader {
 				}
 				codedIS.seek(poiInd.filePointer + poiInd.length);
 				break;
-			case OsmandOdb.OsmAndStructure.VERSIONCONFIRM_FIELD_NUMBER :
+			case OsmandOdb.OsmAndStructure.VERSIONCONFIRM_FIELD_NUMBER ://32
 				int cversion = codedIS.readUInt32();
 				calculateCenterPointForRegions();
 				initCorrectly = cversion == version;
@@ -622,6 +648,9 @@ public class BinaryMapIndexReader {
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
 			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"readMapIndex"+ " "+String.valueOf(tag)+"\n");
+			
 			switch (tag) {
 			case 0:
 				// encoding rules are required!
@@ -629,12 +658,17 @@ public class BinaryMapIndexReader {
 					index.finishInitializingTags();
 				}
 				return;
-			case OsmandOdb.OsmAndMapIndex.NAME_FIELD_NUMBER :
+			case OsmandOdb.OsmAndMapIndex.NAME_FIELD_NUMBER ://2
 				index.setName(codedIS.readString());
+//				writeFileSdcard(dir,"NAME_FIELD"+" "+index.name+"\n");
+				
 				break;
-			case OsmandOdb.OsmAndMapIndex.RULES_FIELD_NUMBER :
+			case OsmandOdb.OsmAndMapIndex.RULES_FIELD_NUMBER ://4
 				if (onlyInitEncodingRules) {
 					int len = codedIS.readInt32();
+					
+//					writeFileSdcard(dir,"RULES_FIELD"+" "+len+"\n");
+					
 					oldLimit = codedIS.pushLimit(len);
 					readMapEncodingRule(index, defaultId++);
 					codedIS.popLimit(oldLimit);
@@ -642,8 +676,11 @@ public class BinaryMapIndexReader {
 					skipUnknownField(t);
 				}
 				break;
-			case OsmandOdb.OsmAndMapIndex.LEVELS_FIELD_NUMBER :
+			case OsmandOdb.OsmAndMapIndex.LEVELS_FIELD_NUMBER ://5
 				int length = readInt();
+				
+//				writeFileSdcard(dir,"LEVELS_FIELD"+" "+length+"\n");
+				
 				int filePointer = codedIS.getTotalBytesRead();
 				if (!onlyInitEncodingRules) {
 					oldLimit = codedIS.pushLimit(length);
@@ -653,6 +690,9 @@ public class BinaryMapIndexReader {
 					index.getRoots().add(mapRoot);
 					codedIS.popLimit(oldLimit);
 				}
+				
+				writeFileSdcard(dir,"readMapIndex//5  codedIS.seek(filePointer + length)"+ " "+(filePointer + length)+"\n");
+				
 				codedIS.seek(filePointer + length);
 				break;
 			default:
@@ -670,21 +710,34 @@ public class BinaryMapIndexReader {
 		while(true){
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"readMapEncodingRule"+" "+String.valueOf(tag)+"\n");
+			
+			
 			switch (tag) {
 			case 0:
 				index.initMapEncodingRule(type, id, tags, val);
 				return;
-			case MapEncodingRule.VALUE_FIELD_NUMBER :
+			case MapEncodingRule.VALUE_FIELD_NUMBER ://5
 				val = codedIS.readString().intern();
+				
+//				writeFileSdcard(dir,"VALUE_FIELD"+" "+val+"\n");
 				break;
-			case MapEncodingRule.TAG_FIELD_NUMBER :
+			case MapEncodingRule.TAG_FIELD_NUMBER ://3
 				tags = codedIS.readString().intern();
+				
+//				writeFileSdcard(dir,"TAG_FIELD"+" "+tags+"\n");
 				break;
-			case MapEncodingRule.TYPE_FIELD_NUMBER :
+			case MapEncodingRule.TYPE_FIELD_NUMBER ://10
 				type = codedIS.readUInt32();
+				
+//				writeFileSdcard(dir,"TYPE_FIELD"+" "+type+"\n");
 				break;
-			case MapEncodingRule.ID_FIELD_NUMBER :
+			case MapEncodingRule.ID_FIELD_NUMBER ://7
 				id = codedIS.readUInt32();
+				
+//				writeFileSdcard(dir,"ID_FIELD"+" "+id+"\n");
 				break;
 			default:
 				skipUnknownField(t);
@@ -698,29 +751,48 @@ public class BinaryMapIndexReader {
 		while(true){
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"readMapLevel"+" "+String.valueOf(tag)+"\n");
+			
 			switch (tag) {
 			case 0:
 				return root;
-			case MapRootLevel.BOTTOM_FIELD_NUMBER :
+			case MapRootLevel.BOTTOM_FIELD_NUMBER ://6
 				root.bottom = codedIS.readInt32();
+				
+//				writeFileSdcard(dir,"BOTTOM_FIELD"+" "+root.bottom+"\n");
 				break;
-			case MapRootLevel.LEFT_FIELD_NUMBER :
+			case MapRootLevel.LEFT_FIELD_NUMBER ://3
 				root.left = codedIS.readInt32();
+				
+//				writeFileSdcard(dir,"LEFT_FIELD"+" "+root.left+"\n");
 				break;
-			case MapRootLevel.RIGHT_FIELD_NUMBER :
+			case MapRootLevel.RIGHT_FIELD_NUMBER ://4
 				root.right = codedIS.readInt32();
+				
+//				writeFileSdcard(dir,"RIGHT_FIELD"+" "+root.right+"\n");
 				break;
-			case MapRootLevel.TOP_FIELD_NUMBER :
+			case MapRootLevel.TOP_FIELD_NUMBER ://5
 				root.top = codedIS.readInt32();
+				
+//				writeFileSdcard(dir,"TOP_FIELD"+" "+root.top+"\n");
 				break;
-			case MapRootLevel.MAXZOOM_FIELD_NUMBER :
+			case MapRootLevel.MAXZOOM_FIELD_NUMBER ://1
 				root.maxZoom = codedIS.readInt32();
+				
+//				writeFileSdcard(dir,"MAXZOOM_FIELD"+" "+root.maxZoom+"\n");
 				break;
-			case MapRootLevel.MINZOOM_FIELD_NUMBER :
+			case MapRootLevel.MINZOOM_FIELD_NUMBER ://2
 				root.minZoom = codedIS.readInt32();
+				
+//				writeFileSdcard(dir,"MINZOOM_FIELD"+" "+root.minZoom+"\n");
 				break;
-			case MapRootLevel.BOXES_FIELD_NUMBER :
+			case MapRootLevel.BOXES_FIELD_NUMBER ://7
 				int length = readInt();
+				
+//				writeFileSdcard(dir,"BOXES_FIELD"+" "+length+"\n");
+				
 				int filePointer = codedIS.getTotalBytesRead();
 				if (root.trees != null) {
 					MapTree r = new MapTree();
@@ -732,10 +804,15 @@ public class BinaryMapIndexReader {
 					root.trees.add(r);
 					codedIS.popLimit(oldLimit);
 				}
+				
+				writeFileSdcard(dir,"readMapLevel//7 seek(filePointer + length);"+" "+(filePointer + length)+"\n");
+				
 				codedIS.seek(filePointer + length);
 				break;
-			case MapRootLevel.BLOCKS_FIELD_NUMBER :
+			case MapRootLevel.BLOCKS_FIELD_NUMBER ://15
 				codedIS.skipRawBytes(codedIS.getBytesUntilLimit());
+				
+				//?
 				break;
 			default:
 				skipUnknownField(t);
@@ -749,30 +826,46 @@ public class BinaryMapIndexReader {
 		while(true){
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"readMapTreeBounds"+" "+String.valueOf(tag)+"\n");
+			
 			switch (tag) {
 			case 0:
 				return;
-			case MapDataBox.BOTTOM_FIELD_NUMBER :
+			case MapDataBox.BOTTOM_FIELD_NUMBER ://4
 				tree.bottom = codedIS.readSInt32() + abottom;
+				
+//				writeFileSdcard(dir,"BOTTOM_FIELD"+" "+tree.bottom+"\n");
 				break;
-			case MapDataBox.LEFT_FIELD_NUMBER :
+			case MapDataBox.LEFT_FIELD_NUMBER ://1
 				tree.left = codedIS.readSInt32() + aleft;
+				
+				//writeFileSdcard(dir,"LEFT_FIELD"+" "+tree.left+"\n");
 				break;
-			case MapDataBox.RIGHT_FIELD_NUMBER :
+			case MapDataBox.RIGHT_FIELD_NUMBER ://2
 				tree.right = codedIS.readSInt32() + aright;
+				
+				//writeFileSdcard(dir,"RIGHT_FIELD"+" "+tree.right+"\n");
 				break;
-			case MapDataBox.TOP_FIELD_NUMBER :
+			case MapDataBox.TOP_FIELD_NUMBER ://3
 				tree.top = codedIS.readSInt32() + atop;
+				
+				//writeFileSdcard(dir,"TOP_FIELD"+" "+tree.top+"\n");
 				break;
-			case MapDataBox.OCEAN_FIELD_NUMBER :
+			case MapDataBox.OCEAN_FIELD_NUMBER ://6
 				if(codedIS.readBool()) {
 					tree.ocean = Boolean.TRUE;
+					//writeFileSdcard(dir,"OCEAN_FIELD"+" "+tree.ocean+"\n");
 				} else {
 					tree.ocean = Boolean.FALSE;
+					//writeFileSdcard(dir,"OCEAN_FIELD"+" "+tree.ocean+"\n");
 				}
 				break;
-			case MapDataBox.SHIFTTOMAPDATA_FIELD_NUMBER :
+			case MapDataBox.SHIFTTOMAPDATA_FIELD_NUMBER ://5
 				tree.mapDataBlock = readInt() + tree.filePointer;
+				
+				//writeFileSdcard(dir,"SHIFTTOMAPDATA_FIELD"+" "+tree.mapDataBlock+"\n");
 				break;
 		
 			default:
@@ -782,7 +875,46 @@ public class BinaryMapIndexReader {
 		}
 	}
 	
+	public void createFile(String path, byte[] content) throws IOException {  
+		  
+        FileOutputStream fos = new FileOutputStream(path,true);  
+  
+        fos.write(content);  
+        fos.close();  
+    }  
 	
+	public void writeFileSdcard(String fileName,String message){ 
+
+	       try{ 
+
+	        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+	       FileOutputStream fout = new FileOutputStream(fileName,true);
+	       
+	       log.warn("success 1");
+
+	        byte [] bytes = message.getBytes(); 
+	        
+	        log.warn("success 2");
+
+	        fout.write(bytes);
+	        
+	        
+	        log.warn("success 3");
+
+	         fout.close(); 
+	         log.warn("success 4");
+
+	        } 
+
+	       catch(Exception e){
+	    	   log.warn("success 5");
+
+	        e.printStackTrace(); 
+
+	       } 
+
+	   }
 	
 	public List<BinaryMapDataObject> searchMapIndex(SearchRequest<BinaryMapDataObject> req) throws IOException {
 		req.numberOfVisitedObjects = 0;
@@ -790,23 +922,71 @@ public class BinaryMapIndexReader {
 		req.numberOfAcceptedSubtrees = 0;
 		req.numberOfReadSubtrees = 0;
 		List<MapTree> foundSubtrees = new ArrayList<MapTree>();
+		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f =new File(dir,"buffer.txt");
+		
+		//FileOutputStream out = new FileOutputStream(f);
+		
+		String bufferdir = dir+"buffer.txt";
+		String bufferdir2 = dir+"buffer2.txt";
+		int i =1;
+		log.warn("mapIndexes.size"+" "+mapIndexes.size());
+		
 		for (MapIndex mapIndex : mapIndexes) {
+			
+			//
+		
+			if(!f.exists()){
+				f.createNewFile();
+			}
+			//System.getProperty("line.separator"); //\n
+			String objectnum = "di"+(i)+"loop"+"\n";
+			writeFileSdcard(bufferdir2,objectnum);
+			//writeFileSdcard(bufferdir,"test");
+//			for(int c=0;c<codedIS.buffer.length;c++){
+//				createFile(bufferdir,codedIS.buffer[c]);
+//			}
 			// lazy initializing rules
 			if(mapIndex.encodingRules.isEmpty()) {
+				
+				writeFileSdcard(bufferdir2,"mapIndex.filePointer  "+mapIndex.filePointer);
+				
 				codedIS.seek(mapIndex.filePointer);
 				int oldLimit = codedIS.pushLimit(mapIndex.length);
 				readMapIndex(mapIndex, true);
 				codedIS.popLimit(oldLimit);
 			}
+			int loop1 =1;
+			int loop2 =1;
 			for (MapRoot index : mapIndex.getRoots()) {
+				//
+				
 				if (index.minZoom <= req.zoom && index.maxZoom >= req.zoom) {
 					if (index.right < req.left || index.left > req.right || index.top > req.bottom || index.bottom < req.top) {
 						continue;
 					}
+					mapIndex.getRoots().size();
+					StringBuffer SB = new StringBuffer();
+					SB.append("here loop1 number counter ").append(loop1).append("\n");
+					loop1++;
+					SB.append("index.right  ").append(index.right).append("\n");
+					SB.append("req.right  ").append(req.right).append("\n");
+					SB.append("index.left  ").append(index.left).append("\n");
+					SB.append("req.left  ").append(req.left).append("\n");
+					SB.append("index.top  ").append(index.top).append("\n");
+					SB.append("req.top  ").append(req.top).append("\n");
+					SB.append("index.bottom  ").append(index.bottom).append("\n");
+					SB.append("req.bottom  ").append(req.bottom).append("\n");
+					writeFileSdcard(bufferdir2,SB.toString());
+					
 					
 					// lazy initializing trees
 					if(index.trees == null){
 						index.trees = new ArrayList<MapTree>();
+						
+						writeFileSdcard(bufferdir2,"index.filePointer  "+index.filePointer);
+						
 						codedIS.seek(index.filePointer);
 						int oldLimit = codedIS.pushLimit(index.length);
 						readMapLevel(index);
@@ -817,6 +997,20 @@ public class BinaryMapIndexReader {
 						if (tree.right < req.left || tree.left > req.right || tree.top > req.bottom || tree.bottom < req.top) {
 							continue;
 						}
+						StringBuffer sb = new StringBuffer();
+						sb.append("loop2 number counter  ").append(loop2).append("\n");
+						loop2++;
+						sb.append("tree.right  ").append(tree.right).append("\n");
+						sb.append("req.right  ").append(req.right).append("\n");
+						sb.append("tree.left  ").append(tree.left).append("\n");
+						sb.append("req.left  ").append(req.left).append("\n");
+						sb.append("tree.top  ").append(tree.top).append("\n");
+						sb.append("req.top  ").append(req.top).append("\n");
+						sb.append("tree.bottom  ").append(tree.bottom).append("\n");
+						sb.append("req.bottom  ").append(req.bottom).append("\n");
+						writeFileSdcard(bufferdir2,sb.toString());
+						
+						writeFileSdcard(bufferdir2,"tree.filePointer  "+tree.filePointer);
 						codedIS.seek(tree.filePointer);
 						int oldLimit = codedIS.pushLimit(tree.length);
 						searchMapTreeBounds(tree, index, req, foundSubtrees);
@@ -831,8 +1025,15 @@ public class BinaryMapIndexReader {
 					});
 					for(MapTree tree : foundSubtrees) {
 						if(!req.isCancelled()){
+							
+							writeFileSdcard(bufferdir2,"tree.mapDataBlock  "+tree.mapDataBlock);
+							
 							codedIS.seek(tree.mapDataBlock);
 							int length = codedIS.readRawVarint32();
+							
+							
+							//writeFileSdcard(bufferdir,"length"+ " "+length+"\n");
+							//
 							int oldLimit = codedIS.pushLimit(length);
 							readMapDataBlocks(req, tree, mapIndex);
 							codedIS.popLimit(oldLimit);
@@ -842,6 +1043,8 @@ public class BinaryMapIndexReader {
 				}
 				
 			}
+			//write over
+			i++;
 		}
 		if(req.numberOfVisitedObjects > 0) {
 			log.info("Search is done. Visit " + req.numberOfVisitedObjects + " objects. Read " + req.numberOfAcceptedObjects + " objects."); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -927,6 +1130,10 @@ public class BinaryMapIndexReader {
 			}
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"readMapDataBlocks"+" "+String.valueOf(tag)+"\n");
+			
 			switch (tag) {
 			case 0:
 				if(tempResults != null) {
@@ -935,11 +1142,16 @@ public class BinaryMapIndexReader {
 					}
 				}
 				return;
-			case MapDataBlock.BASEID_FIELD_NUMBER:
+			case MapDataBlock.BASEID_FIELD_NUMBER://10
 				baseId = codedIS.readUInt64();
+				
+				//writeFileSdcard(dir,"BASEID_FIELD"+" "+baseId+"\n");
 				break;
-			case MapDataBlock.DATAOBJECTS_FIELD_NUMBER:
+			case MapDataBlock.DATAOBJECTS_FIELD_NUMBER://12
 				int length = codedIS.readRawVarint32();
+				
+				//writeFileSdcard(dir,"DATAOBJECTS_FIELD"+" "+length+"\n");
+				
 				int oldLimit = codedIS.pushLimit(length);
 				BinaryMapDataObject mapObject = readMapDataObject(tree, req, root);
 				if (mapObject != null) {
@@ -951,8 +1163,11 @@ public class BinaryMapIndexReader {
 				}
 				codedIS.popLimit(oldLimit);
 				break;
-			case MapDataBlock.STRINGTABLE_FIELD_NUMBER:
+			case MapDataBlock.STRINGTABLE_FIELD_NUMBER://15
 				length = codedIS.readRawVarint32();
+				
+				//writeFileSdcard(dir,"STRINGTABLE_FIELD"+" "+length+"\n");
+				
 				oldLimit = codedIS.pushLimit(length);
 				if (tempResults != null) {
 					List<String> stringTable = readStringTable();
@@ -988,6 +1203,10 @@ public class BinaryMapIndexReader {
 			}
 			int t = codedIS.readTag();
 			int tag = WireFormat.getTagFieldNumber(t);
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"searchMapTreeBounds"+" "+String.valueOf(tag)+"\n");
+			
 			if(init == 0xf){
 				init = 0;
 				// coordinates are init
@@ -1000,39 +1219,57 @@ public class BinaryMapIndexReader {
 			switch (tag) {
 			case 0:
 				return;
-			case MapDataBox.BOTTOM_FIELD_NUMBER :
+			case MapDataBox.BOTTOM_FIELD_NUMBER ://4
 				current.bottom = codedIS.readSInt32() + parent.bottom;
 				init |= 1;
+				
+				//writeFileSdcard(dir,"BOTTOM_FIELD"+" "+current.bottom+"\n");
+				
 				break;
-			case MapDataBox.LEFT_FIELD_NUMBER :
+			case MapDataBox.LEFT_FIELD_NUMBER ://1
 				current.left = codedIS.readSInt32() + parent.left;
 				init |= 2;
+				
+				//writeFileSdcard(dir,"LEFT_FIELD"+" "+current.left+"\n");
 				break;
-			case MapDataBox.RIGHT_FIELD_NUMBER :
+			case MapDataBox.RIGHT_FIELD_NUMBER ://2
 				current.right = codedIS.readSInt32() + parent.right;
 				init |= 4;
+				
+				//writeFileSdcard(dir,"RIGHT_FIELD"+" "+current.right+"\n");
 				break;
-			case MapDataBox.TOP_FIELD_NUMBER :
+			case MapDataBox.TOP_FIELD_NUMBER ://3
 				current.top = codedIS.readSInt32() + parent.top;
 				init |= 8;
+				
+				//writeFileSdcard(dir,"TOP_FIELD"+" "+current.top+"\n");
 				break;
-			case MapDataBox.SHIFTTOMAPDATA_FIELD_NUMBER :
+			case MapDataBox.SHIFTTOMAPDATA_FIELD_NUMBER ://5
 				req.numberOfAcceptedSubtrees ++;
 				current.mapDataBlock = readInt() + current.filePointer;
 				foundSubtrees.add(current);
+				
+				//writeFileSdcard(dir,"SHIFTTOMAPDATA_FIELD"+" "+current.mapDataBlock+"\n");
+				
 				break;
-			case MapDataBox.OCEAN_FIELD_NUMBER :
+			case MapDataBox.OCEAN_FIELD_NUMBER ://6
 				if(codedIS.readBool()) {
 					current.ocean = Boolean.TRUE;
+					//writeFileSdcard(dir,"OCEAN_FIELD"+" "+current.ocean+"\n");
 				} else {
 					current.ocean = Boolean.FALSE;
+					//writeFileSdcard(dir,"OCEAN_FIELD"+" "+current.ocean+"\n");
 				}
 				req.publishOceanTile(current.ocean);
 				break;
-			case MapDataBox.BOXES_FIELD_NUMBER :
+			case MapDataBox.BOXES_FIELD_NUMBER ://7
 				// left, ... already initialized
 				MapTree child = new MapTree();
 				child.length = readInt();
+				
+				//
+				//writeFileSdcard(dir,"child.length"+" "+child.length+"\n");
+				
 				child.filePointer = codedIS.getTotalBytesRead();
 				int oldLimit = codedIS.pushLimit(child.length);
 				if(current.ocean != null ){
@@ -1040,6 +1277,9 @@ public class BinaryMapIndexReader {
 				}
 				searchMapTreeBounds(child, current, req, foundSubtrees);
 				codedIS.popLimit(oldLimit);
+				
+				writeFileSdcard(dir,"searchMapTreeBounds//7"+" "+(child.filePointer + child.length)+"\n");
+				
 				codedIS.seek(child.filePointer + child.length);
 				break;
 			default:
@@ -1053,12 +1293,21 @@ public class BinaryMapIndexReader {
 	private BinaryMapDataObject readMapDataObject(MapTree tree , SearchRequest<BinaryMapDataObject> req, 
 			MapIndex root) throws IOException {
 		int tag = WireFormat.getTagFieldNumber(codedIS.readTag());
+		
+		String dir = Environment.getExternalStorageDirectory()+"/buffer.txt";
+		//writeFileSdcard(dir,"readMapDataObject"+" "+String.valueOf(tag)+"\n");
+		
+		
 		boolean area = OsmandOdb.MapData.AREACOORDINATES_FIELD_NUMBER == tag;
 		if(!area && OsmandOdb.MapData.COORDINATES_FIELD_NUMBER != tag) {
 			throw new IllegalArgumentException();
 		}
 		req.cacheCoordinates.clear();
 		int size = codedIS.readRawVarint32();
+		
+		//
+		//writeFileSdcard(dir,"size"+" "+size+"\n");
+		
 		int old = codedIS.pushLimit(size);
 		int px = tree.left & MASK_TO_READ;
 		int py = tree.top & MASK_TO_READ;
@@ -1069,8 +1318,17 @@ public class BinaryMapIndexReader {
 		int maxY = 0;
 		req.numberOfVisitedObjects++;
 		while(codedIS.getBytesUntilLimit() > 0){
-			int x = (codedIS.readSInt32() << SHIFT_COORDINATES) + px;
-			int y = (codedIS.readSInt32() << SHIFT_COORDINATES) + py;
+			
+			int temp1 = codedIS.readSInt32();
+			int temp2 = codedIS.readSInt32();
+			//writeFileSdcard(dir,"temp1"+" "+temp1+"\n");
+			//writeFileSdcard(dir,"temp2"+" "+temp2+"\n");
+			
+			int x = (temp1 << SHIFT_COORDINATES) + px;
+			int y = (temp2 << SHIFT_COORDINATES) + py;
+			
+			//int x = (codedIS.readSInt32() << SHIFT_COORDINATES) + px;
+			//int y = (codedIS.readSInt32() << SHIFT_COORDINATES) + py;
 			req.cacheCoordinates.add(x);
 			req.cacheCoordinates.add(y);
 			px = x;
@@ -1109,11 +1367,15 @@ public class BinaryMapIndexReader {
 		while (loop) {
 			int t = codedIS.readTag();
 			tag = WireFormat.getTagFieldNumber(t);
+			
+			
+			//writeFileSdcard(dir,"loop of read "+" "+String.valueOf(tag)+"\n");
+			
 			switch (tag) {
 			case 0:
 				loop = false;
 				break;
-			case OsmandOdb.MapData.POLYGONINNERCOORDINATES_FIELD_NUMBER:
+			case OsmandOdb.MapData.POLYGONINNERCOORDINATES_FIELD_NUMBER://4
 				if (innercoordinates == null) {
 					innercoordinates = new ArrayList<TIntArrayList>();
 				}
@@ -1122,10 +1384,23 @@ public class BinaryMapIndexReader {
 				px = tree.left & MASK_TO_READ;
 				py = tree.top & MASK_TO_READ;
 				size = codedIS.readRawVarint32();
+				
+				//
+				//writeFileSdcard(dir,"size"+" "+size+"\n");
+				
 				old = codedIS.pushLimit(size);
 				while (codedIS.getBytesUntilLimit() > 0) {
-					int x = (codedIS.readSInt32() << SHIFT_COORDINATES) + px;
-					int y = (codedIS.readSInt32() << SHIFT_COORDINATES) + py;
+					
+					int temp1 = codedIS.readSInt32();
+					int temp2 = codedIS.readSInt32();
+					//writeFileSdcard(dir,"temp1"+" "+temp1+"\n");
+					//writeFileSdcard(dir,"temp2"+" "+temp2+"\n");
+					
+					int x = (temp1 << SHIFT_COORDINATES) + px;
+					int y = (temp2 << SHIFT_COORDINATES) + py;
+					
+					//int x = (codedIS.readSInt32() << SHIFT_COORDINATES) + px;
+					//int y = (codedIS.readSInt32() << SHIFT_COORDINATES) + py;
 					polygon.add(x);
 					polygon.add(y);
 					px = x;
@@ -1133,21 +1408,40 @@ public class BinaryMapIndexReader {
 				}
 				codedIS.popLimit(old);
 				break;
-			case OsmandOdb.MapData.ADDITIONALTYPES_FIELD_NUMBER:
+			case OsmandOdb.MapData.ADDITIONALTYPES_FIELD_NUMBER://6
 				additionalTypes = new TIntArrayList();
 				int sizeL = codedIS.readRawVarint32();
+				
+				//
+				//writeFileSdcard(dir,"ADDITIONALTYPES_FIELD sizeL"+" "+sizeL+"\n");
 				old = codedIS.pushLimit(sizeL);
 				while (codedIS.getBytesUntilLimit() > 0) {
-					additionalTypes.add(codedIS.readRawVarint32());
+					
+					int temp = codedIS.readRawVarint32();
+					
+					//writeFileSdcard(dir," temp"+" "+temp+"\n");
+					additionalTypes.add(temp);
+					
+					//additionalTypes.add(codedIS.readRawVarint32());
 				}
 				codedIS.popLimit(old);
 				break;
-			case OsmandOdb.MapData.TYPES_FIELD_NUMBER:
+			case OsmandOdb.MapData.TYPES_FIELD_NUMBER://7
 				req.cacheTypes.clear();
 				sizeL = codedIS.readRawVarint32();
+				
+				//writeFileSdcard(dir,"TYPES_FIELD sizeL"+" "+sizeL+"\n");
+				
+				
 				old = codedIS.pushLimit(sizeL);
 				while (codedIS.getBytesUntilLimit() > 0) {
-					req.cacheTypes.add(codedIS.readRawVarint32());
+					
+					int temp = codedIS.readRawVarint32();
+					
+					//writeFileSdcard(dir," temp"+" "+temp+"\n");
+					req.cacheTypes.add(temp);
+					
+					//req.cacheTypes.add(codedIS.readRawVarint32());
 				}
 				codedIS.popLimit(old);
 				boolean accept = true;
@@ -1160,17 +1454,27 @@ public class BinaryMapIndexReader {
 				}
 				req.numberOfAcceptedObjects++;
 				break;
-			case OsmandOdb.MapData.ID_FIELD_NUMBER:
+			case OsmandOdb.MapData.ID_FIELD_NUMBER://12
 				id = codedIS.readSInt64();
+				
+				//
+				//writeFileSdcard(dir,"ID_FIELD id"+" "+id+"\n");
 				break;
-			case OsmandOdb.MapData.STRINGNAMES_FIELD_NUMBER:
+			case OsmandOdb.MapData.STRINGNAMES_FIELD_NUMBER://10
 				stringNames = new TIntObjectHashMap<String>();
 				stringOrder = new TIntArrayList();
 				sizeL = codedIS.readRawVarint32();
+				//
+				//writeFileSdcard(dir,"STRINGNAMES_FIELD sizeL"+" "+sizeL+"\n");
+				
 				old = codedIS.pushLimit(sizeL);
 				while (codedIS.getBytesUntilLimit() > 0) {
 					int stag = codedIS.readRawVarint32();
 					int pId = codedIS.readRawVarint32();
+					
+					//writeFileSdcard(dir,"stag"+" "+stag+"\n");
+					//writeFileSdcard(dir,"pId"+" "+pId+"\n");
+					
 					stringNames.put(stag, ((char)pId)+"");
 					stringOrder.add(stag);
 				}
@@ -1872,6 +2176,35 @@ public class BinaryMapIndexReader {
 	public static void main(String[] args) throws IOException {
 		RandomAccessFile raf = new RandomAccessFile("", "r");
 		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f =new File(dir,"buffer2.txt");
+		
+		String bufferdir = dir+"buffer2.txt";
+		if(!f.exists()){
+			
+			f.createNewFile();
+			//f.delete();
+		}
+		 try{ 
+
+		        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+		       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+		       String message = "test enter of init()  main(String[] args)"+"\n";
+		       
+		       byte [] bytes = message.getBytes(); 
+		       fout.write(bytes);
+		       
+		       fout.close(); 
+		    
+		        } 
+
+		       catch(Exception e){
+		    	
+		        e.printStackTrace(); 
+
+		       } 
+		 
 		BinaryMapIndexReader reader = new BinaryMapIndexReader(raf);
 		println("VERSION " + reader.getVersion()); //$NON-NLS-1$
 		long time = System.currentTimeMillis();
@@ -2192,6 +2525,36 @@ public class BinaryMapIndexReader {
 	private static void testMapSearch(BinaryMapIndexReader reader) throws IOException {
 		println(reader.mapIndexes.get(0).encodingRules + "");
 		println("SEARCH " + sleft + " " + sright + " " + stop + " " + sbottom);
+		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f =new File(dir,"buffer.txt");
+		
+		String bufferdir = dir+"buffer.txt";
+		if(!f.exists()){
+			
+			f.createNewFile();
+			//f.delete();
+		}
+		 try{ 
+
+		        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+		       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+		       String message = "testMapSearch:2454";
+		       
+		       byte [] bytes = message.getBytes(); 
+		       fout.write(bytes);
+		       
+		       fout.close(); 
+		    
+		        } 
+
+		       catch(Exception e){
+		    	
+		        e.printStackTrace(); 
+
+		       } 
+		 
 
 		reader.searchMapIndex(buildSearchRequest(sleft, sright, stop, sbottom, szoom, null, new ResultMatcher<BinaryMapDataObject>() {
 			

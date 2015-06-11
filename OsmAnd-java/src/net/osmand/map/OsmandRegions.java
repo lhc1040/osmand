@@ -4,6 +4,8 @@ package net.osmand.map;
 import gnu.trove.iterator.TIntObjectIterator;
 import gnu.trove.list.array.TIntArrayList;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import android.os.Environment;
 
 import net.osmand.ResultMatcher;
 import net.osmand.binary.BinaryMapDataObject;
@@ -47,6 +51,36 @@ public class OsmandRegions {
 
 
 	public void prepareFile(String fileName) throws IOException {
+		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f2 =new File(dir,"buffer2.txt");
+		
+		String bufferdir = dir+"buffer2.txt";
+		if(!f2.exists()){
+			
+			f2.createNewFile();
+			//f.delete();
+		}
+		 try{ 
+
+		        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+		       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+		       String message = "test enter of init()  prepareFile()"+fileName+"\n";
+		       
+		       byte [] bytes = message.getBytes(); 
+		       fout.write(bytes);
+		       
+		       fout.close(); 
+		    
+		        } 
+
+		       catch(Exception e){
+		    	
+		        e.printStackTrace(); 
+
+		       } 
+		 
 		reader = new BinaryMapIndexReader(new RandomAccessFile(fileName, "r"));
 		initLocaleNames();
 	}
@@ -197,6 +231,33 @@ public class OsmandRegions {
 				}
 		);
 		if(reader != null) {
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			File f =new File(dir,"buffer2.txt");
+			
+			String bufferdir = dir+"buffer2.txt";
+			if(f.exists()){
+				 try{ 
+
+				        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+				       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+				       String message = "queryNoInit:OsmandRegions214";
+				       
+				       byte [] bytes = message.getBytes(); 
+				       fout.write(bytes);
+				       
+				       fout.close(); 
+				    
+				        } 
+
+				       catch(Exception e){
+				    	
+				        e.printStackTrace(); 
+
+				       } 
+
+				//f.delete();
+			}
 			reader.searchMapIndex(sr);
 		}
 		return result;
@@ -230,6 +291,34 @@ public class OsmandRegions {
 				}
 		);
 		if(reader != null) {
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			File f =new File(dir,"buffer2.txt");
+			
+			String bufferdir = dir+"buffer2.txt";
+			if(f.exists()){
+				 try{ 
+
+				        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+				       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+				       String message = "queryBbox:OsmandRegions247";
+				       
+				       byte [] bytes = message.getBytes(); 
+				       fout.write(bytes);
+				       
+				       fout.close(); 
+				    
+				        } 
+
+				       catch(Exception e){
+				    	
+				        e.printStackTrace(); 
+
+				       } 
+
+				//f.delete();
+			}
+			
 			reader.searchMapIndex(sr);
 		}
 		return result;
@@ -342,6 +431,35 @@ public class OsmandRegions {
 					}
 				}, resultMatcher);
 		if(reader != null) {
+			
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			File f =new File(dir,"buffer2.txt");
+			
+			String bufferdir = dir+"buffer2.txt";
+			if(f.exists()){
+				 try{ 
+
+				        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+				       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+				       String message = "iterateOverAllObjects:OsmandRegions360";
+				       
+				       byte [] bytes = message.getBytes(); 
+				       fout.write(bytes);
+				       
+				       fout.close(); 
+				    
+				        } 
+
+				       catch(Exception e){
+				    	
+				        e.printStackTrace(); 
+
+				       } 
+
+				//f.delete();
+			}
+			
 			reader.searchMapIndex(sr);
 		}
 	}

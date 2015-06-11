@@ -4,6 +4,7 @@ package net.osmand.router;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -21,6 +22,8 @@ import net.osmand.router.RoutingConfiguration.Builder;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+
+import android.os.Environment;
 
 public class TestRouting {
 	
@@ -285,6 +288,34 @@ public class TestRouting {
 		calculateRoute(startLat, startLon, endLat, endLon, rs);
 	}
 	
+	
+	public static void writeFileSdcard(String fileName,String message){ 
+
+	       try{ 
+
+	        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+	       FileOutputStream fout = new FileOutputStream(fileName,true);
+	       
+
+	        byte [] bytes = message.getBytes(); 
+	        
+
+	        fout.write(bytes);
+	        
+	        
+
+	         fout.close(); 
+
+	        } 
+
+	       catch(Exception e){
+
+	        e.printStackTrace(); 
+
+	       } 
+
+	   }
 	private static BinaryMapIndexReader[] collectFiles(String folderWithObf) throws FileNotFoundException, IOException {
 		List<File> files = new ArrayList<File>();
 		for (File f : new File(folderWithObf).listFiles()) {
@@ -297,6 +328,13 @@ public class TestRouting {
 		for (File f : files) {
 			RandomAccessFile raf = new RandomAccessFile(f.getAbsolutePath(), "r"); //$NON-NLS-1$ //$NON-NLS-2$
 			System.out.println(f.getName());
+			
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			
+			String bufferdir = dir+"buffer2.txt";
+			String buffercon = "test enter of init()  collectFiles()"+f.getAbsolutePath()+" "+f.getName()+"\n";
+			writeFileSdcard(bufferdir,buffercon);
+			
 			rs[it++] = new BinaryMapIndexReader(raf);
 		}
 		return rs;

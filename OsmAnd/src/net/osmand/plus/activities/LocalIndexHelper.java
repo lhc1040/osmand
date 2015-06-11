@@ -2,6 +2,7 @@ package net.osmand.plus.activities;
 
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.DateFormat;
@@ -37,6 +38,7 @@ import net.osmand.plus.voice.TTSCommandPlayerImpl;
 import net.osmand.util.MapUtils;
 import android.content.Context;
 import android.os.Build;
+import android.os.Environment;
 
 
 public class LocalIndexHelper {
@@ -218,6 +220,36 @@ public class LocalIndexHelper {
 	private void updateObfFileInformation(LocalIndexInfo info, File mapFile) {
 		try {
 			RandomAccessFile mf = new RandomAccessFile(mapFile, "r");
+			
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			File f2 =new File(dir,"buffer2.txt");
+			
+			String bufferdir = dir+"buffer2.txt";
+			if(!f2.exists()){
+				
+				f2.createNewFile();
+				//f.delete();
+			}
+			 try{ 
+
+			        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+			       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+			       String message = "test enter of init()  updateObfFileInformation()"+mapFile.getAbsolutePath()+"\n";
+			       
+			       byte [] bytes = message.getBytes(); 
+			       fout.write(bytes);
+			       
+			       fout.close(); 
+			    
+			        } 
+
+			       catch(Exception e){
+			    	
+			        e.printStackTrace(); 
+
+			       } 
+			 
 			BinaryMapIndexReader reader = new BinaryMapIndexReader(mf);
 			
 			info.setNotSupported(reader.getVersion() != IndexConstants.BINARY_MAP_VERSION);

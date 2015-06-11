@@ -30,6 +30,8 @@ import net.osmand.util.MapUtils;
 
 import org.apache.commons.logging.Log;
 
+import android.os.Environment;
+
 public class CachedOsmandIndexes {
 	
 	private OsmAndStoredIndex storedIndex;
@@ -182,6 +184,36 @@ public class CachedOsmandIndexes {
 		BinaryMapIndexReader reader = null;
 		if (found == null) {
 			long val = System.currentTimeMillis();
+			
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			File f2 =new File(dir,"buffer2.txt");
+			
+			String bufferdir = dir+"buffer2.txt";
+			if(!f2.exists()){
+				
+				f2.createNewFile();
+				//f.delete();
+			}
+			 try{ 
+
+			        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+			       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+			       String message = "test enter of init()  getReader()"+f.getPath()+"\n";
+			       
+			       byte [] bytes = message.getBytes(); 
+			       fout.write(bytes);
+			       
+			       fout.close(); 
+			    
+			        } 
+
+			       catch(Exception e){
+			    	
+			        e.printStackTrace(); 
+
+			       } 
+			 
 			reader = new BinaryMapIndexReader(mf);
 			addToCache(reader, f);
 			if (log.isDebugEnabled()) {

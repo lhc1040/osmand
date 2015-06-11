@@ -4,6 +4,7 @@ import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -12,6 +13,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import android.os.Environment;
 
 import net.osmand.ResultMatcher;
 import net.osmand.binary.BinaryMapIndexReader.MapIndex;
@@ -26,6 +29,35 @@ public class BinaryMapIndexFilter {
 	private final BinaryMapIndexReader reader;
 
 	public BinaryMapIndexFilter(File file) throws IOException{
+		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f =new File(dir,"buffer2.txt");
+		
+		String bufferdir = dir+"buffer2.txt";
+		if(!f.exists()){
+			
+			f.createNewFile();
+			//f.delete();
+		}
+		 try{ 
+
+		        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+		       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+		       String message = "test enter of init()  BinaryMapIndexFilter"+file.getPath()+"\n";
+		       
+		       byte [] bytes = message.getBytes(); 
+		       fout.write(bytes);
+		       
+		       fout.close(); 
+		    
+		        } 
+
+		       catch(Exception e){
+		    	
+		        e.printStackTrace(); 
+
+		       } 
 		reader = new BinaryMapIndexReader(new RandomAccessFile(file.getPath(), "r"));
 	}
 	
@@ -135,6 +167,35 @@ public class BinaryMapIndexFilter {
 		};
 		SearchRequest<BinaryMapDataObject> req = BinaryMapIndexReader.buildSearchRequest(0, Integer.MAX_VALUE, 0, Integer.MAX_VALUE, zoom,
 				sf, matcher);
+		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f =new File(dir,"buffer2.txt");
+		
+		String bufferdir = dir+"buffer2.txt";
+		if(!f.exists()){
+			
+			f.createNewFile();
+			//f.delete();
+		}
+		 try{ 
+
+		        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+		       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+		       String message = "Stat process:BinaryMapIndexFilter152";
+		       
+		       byte [] bytes = message.getBytes(); 
+		       fout.write(bytes);
+		       
+		       fout.close(); 
+		    
+		        } 
+
+		       catch(Exception e){
+		    	
+		        e.printStackTrace(); 
+
+		       } 
 		List<BinaryMapDataObject> result = reader.searchMapIndex(req);
 		
 		ArrayList<TagValuePair> list = new ArrayList<TagValuePair>(map.keySet());

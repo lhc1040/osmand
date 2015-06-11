@@ -63,9 +63,14 @@ import org.apache.commons.logging.Log;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
+
+import javax.xml.parsers.*;
+import org.w3c.dom.*;
+import org.apache.*;
 
 public class MapRenderRepositories {
 
@@ -83,6 +88,17 @@ public class MapRenderRepositories {
 	
 	private static int xtile = 0;
 	private static int ytile = 0;
+	
+	
+	private static final String XML_TITLE = "<?xml version=\"1.0\" encoding=\"gb2312\"?>";
+	
+	private static final String FILE_PATH = "d:";
+	
+	private static final String FILE_SPE = "/";
+	
+	private static final String CHANGE_LINES = "\n";
+	
+	private static final String FILE_NAME = "text.xml";
 	
 	
 
@@ -723,6 +739,35 @@ public class MapRenderRepositories {
 		if (zoom > 16) {
 			searchFilter = null;
 		}
+		
+		String dir = Environment.getExternalStorageDirectory()+"/";
+		File f =new File(dir,"buffer2.txt");
+		
+		String bufferdir = dir+"buffer2.txt";
+		if(f.exists()){
+			 try{ 
+
+			        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+			       FileOutputStream fout = new FileOutputStream(bufferdir,true);
+			       String message = "here begin to read the obf file";
+			       
+			       byte [] bytes = message.getBytes(); 
+			       fout.write(bytes);
+			       
+			       fout.close(); 
+			    
+			        } 
+
+			       catch(Exception e){
+			    	
+			        e.printStackTrace(); 
+
+			       } 
+
+			//f.delete();
+		}
+		
 		MapIndex mi = null;
 		searchRequest = BinaryMapIndexReader.buildSearchRequest(leftX, rightX, topY, bottomY, zoom, searchFilter);
 		for (BinaryMapIndexReader c : files.values()) {
@@ -922,9 +967,7 @@ public class MapRenderRepositories {
 			//tileRect.setLatLonCenter(12.12457, 24.4865);
 			//QuadRect dataBox = new QuadRect( left,  top,  right,  bottom);
 			//tileRect.setLatLon(dataBox);
-			RotatedTileBox temp ;
-			temp = tileRect.copy();
-			
+	
 			//temp.setLatLon(dataBox);
 			//RotatedTileBox latlon = new RotatedTileBox(temp);
 			//tileRect.setLatLonCenter(lat, lon)
@@ -980,13 +1023,18 @@ public class MapRenderRepositories {
 			QuadRect tileBox = new QuadRect( left,  top,  right,  bottom);
 			
 			// calculate data box
-			//QuadRect dataBox = requestedBox.getLatLonBounds(); //
-			QuadRect dataBox = new QuadRect( left,  top,  right,  bottom); //
+			QuadRect dataBox = requestedBox.getLatLonBounds(); //
+			//QuadRect dataBox = new QuadRect( left,  top,  right,  bottom); //
+			
+//			QuadRect dataBox = new QuadRect( left,  top,  left+0.01,  top+0.01);
 			
 			//temp.setLatLon(dataBox);
 			
 			
-			//log.warn("counter here!!!"+dataBox.left);
+			log.warn("boundary here!!!  left"+left);
+			log.warn("boundary here!!!  top"+top);
+			log.warn("boundary here!!!  right"+right);
+			log.warn("boundary here!!!  bottom"+bottom);
 			 
 			long now = System.currentTimeMillis();
 			//
@@ -1129,27 +1177,60 @@ public class MapRenderRepositories {
 			
 			for(int i =0;i<cObjects.size();i++){
 				BinaryMapDataObject o = cObjects.get(i);
+				
+				long id = o.getId();
+				
+				//根据objectType算出对象所属类别
+				
+				int objectType = o.objectType;
+				String plp = "";
+				if(objectType==1){
+					 plp = "Point";
+					
+				}
+				else if(objectType==2){
+					 plp = "LineString";
+				}else{
+					 plp = "Polygon";
+				}
+		
+					
+				
+				StringBuffer sb = new StringBuffer();
+				sb.append(XML_TITLE).append(CHANGE_LINES);
+				sb.append("<gml:featureMember>").append(CHANGE_LINES);
+				sb.append("<gml:"+plp+">").append(CHANGE_LINES);
+				
+				sb.append("<gml:coordinates>").append(CHANGE_LINES);
+				
+				sb.append(o.coordinates).append(CHANGE_LINES);
+				
+				sb.append("</gml:coordinates>").append(CHANGE_LINES);
+				
+				sb.append("</gml:LineString>").append(CHANGE_LINES);
+				sb.append("</gml:featureMember>").append(CHANGE_LINES);
+				
 				for(int j=0;j<o.getTypes().length;j++){
 					log.warn("test:mytt:"+(j+1)+" "+o.getTypes()[j]);
 				}
-				if(o.getId()==-2491146){
-					cObjects.get(i).setCoordinates(coordinantes);
-					cObjects.get(i).setTypes(type);
-					//nmi = cObjects.get(i).getMapIndex();
-				}else{
-					log.warn("mymy there is no data");
-				}
+//				if(o.getId()==-2491146){
+//					cObjects.get(i).setCoordinates(coordinantes);
+//					cObjects.get(i).setTypes(type);
+//					//nmi = cObjects.get(i).getMapIndex();
+//				}else{
+//					log.warn("mymy there is no data");
+//				}
 				
 			}
 			
 			//cObjects.get(0).setCoordinates(coordinantes);
-			cObjects.clear();
-			BinaryMapDataObject mo = new BinaryMapDataObject(coordinantes, type, new int[0][],-2491146);
+			//cObjects.clear();
+//			BinaryMapDataObject mo = new BinaryMapDataObject(coordinantes, type, new int[0][],-2491146);
 //			
 //			log.warn("mymy test"+o.getId());
-			mo.setMapIndex(nmi);
-			mo.setArea(false);
-			cObjects.add(mo);
+//			mo.setMapIndex(nmi);
+//			mo.setArea(false);
+			//cObjects.add(mo);
 			
 //			cObjects.clear();
 //			for(int loop=0;loop<cObjects.size();loop++){

@@ -6,12 +6,14 @@ import net.osmand.binary.BinaryMapIndexReader.MapIndex;
 import net.osmand.render.RenderingRulesStorage;
 
 public class BinaryMapDataObject {
-	protected int[] coordinates = null;
+	//protected 
+	public int[] coordinates = null;
 	protected int[][] polygonInnerCoordinates = null;
 	protected boolean area = false;
 	protected int[] types = null;
 	protected int[] additionalTypes = null;
-	protected int objectType = RenderingRulesStorage.POINT_RULES;
+	//protected 
+	public int objectType = RenderingRulesStorage.POINT_RULES;
 	
 	protected TIntObjectHashMap<String> objectNames = null;
 	protected TIntArrayList namesOrder = null;

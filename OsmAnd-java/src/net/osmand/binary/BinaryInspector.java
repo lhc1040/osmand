@@ -43,6 +43,8 @@ import net.osmand.data.MapObject;
 import net.osmand.data.Street;
 import net.osmand.util.MapUtils;
 
+import android.os.Environment;
+
 import com.google.protobuf.CodedOutputStream;
 import com.google.protobuf.WireFormat;
 
@@ -244,6 +246,32 @@ public class BinaryInspector {
 		//written += 4;
 	}
 	
+	public static void writeFileSdcard(String fileName,String message){ 
+
+	       try{ 
+
+	        //FileOutputStream fout = openFileOutput(fileName, MODE_PRIVATE);
+
+	       FileOutputStream fout = new FileOutputStream(fileName,true);
+	       
+
+	        byte [] bytes = message.getBytes(); 
+	        
+
+	        fout.write(bytes);
+	        
+	        fout.close(); 
+
+	        } 
+
+	       catch(Exception e){
+
+	        e.printStackTrace(); 
+
+	       } 
+
+	   }
+	
 	@SuppressWarnings("unchecked")
 	public  static List<Float> combineParts(File fileToExtract, Map<File, String> partsToExtractFrom) throws IOException {
 		BinaryMapIndexReader[] indexes = new BinaryMapIndexReader[partsToExtractFrom.size()];
@@ -262,6 +290,10 @@ public class BinaryInspector {
 				return null;
 			}
 			rafs[c] = new RandomAccessFile(f.getAbsolutePath(), "r");
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"test enter of init() / combineParts()"+ f.getAbsolutePath()+"\n");
+			
 			indexes[c] = new BinaryMapIndexReader(rafs[c]);
 			partsSet[c] = new LinkedHashSet<Float>();
 			if(version == -1){
@@ -423,6 +455,10 @@ public class BinaryInspector {
 
 	public  void printFileInformation(RandomAccessFile r, String filename) throws IOException {
 		try {
+			
+			String dir = Environment.getExternalStorageDirectory()+"/buffer2.txt";
+			writeFileSdcard(dir,"test enter of init() / printFileInformation()"+ filename+"\n");
+			
 			BinaryMapIndexReader index = new BinaryMapIndexReader(r);
 			int i = 1;
 			println("Binary index " + filename + " version = " + index.getVersion() +" edition = " + new Date(index.getDateCreated()));

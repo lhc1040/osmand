@@ -64,7 +64,7 @@ public final class WireFormat {
 
   /** Given a tag value, determines the field number (the upper 29 bits). */
   public static int getTagFieldNumber(final int tag) {
-    return tag >>> TAG_TYPE_BITS;
+    return tag >>> TAG_TYPE_BITS;//3
   }
 
   /** Makes a tag value given a field number and wire type. */

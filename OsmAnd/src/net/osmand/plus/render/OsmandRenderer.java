@@ -52,6 +52,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
@@ -343,7 +344,37 @@ static double tile2lat(int y, int z) {
 					time, time - beforeIconTextTime, rc.pointCount, rc.pointInsideCount, rc.visible, rc.allObjects);
 			log.info(rc.renderingDebugInfo);
 			
+			//
+			String dir = Environment.getExternalStorageDirectory()+"/";
+			File f =new File(dir,"buffer.txt");
+							
+			String bufferdir = dir+"buffer.txt";
+			if(!f.exists()){
+				
+				try {
+					f.createNewFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			try{ 
 
+				FileOutputStream fout = new FileOutputStream(bufferdir,true);
+				String message = "finish rendering the map";
+								   
+				byte [] bytes = message.getBytes(); 
+				fout.write(bytes);
+										   
+				fout.close(); 
+								
+				} 
+
+			catch(Exception e){
+									
+				e.printStackTrace(); 
+
+				} 
 			//Bitmap bmp1 = Bitmap.createScaledBitmap(bmp, 256, 256, true);
 			
 			log.warn("mytag:test：经度："+tileRect.getLatitude()+"  纬度："+tileRect.getLongitude());
@@ -400,48 +431,53 @@ static double tile2lat(int y, int z) {
 			//QuadRect databox = testBox.getLatLonBounds();
 			//
 			
-			Bitmap bmp1 = Bitmap.createScaledBitmap(temp1,256,256,true);
-			String name1 = "pic"+picnum+".png";
-			File f1 =new File("/sdcard/osmpng/",name1);
-			try{
-			f1.createNewFile();
-			FileOutputStream out1 = new FileOutputStream(f1);
-			bitmap.compress(Bitmap.CompressFormat.PNG, 90, out1);
-			out1.flush();
-			out1.close();
-			log.warn("mytag:图片已保存"+picnum);
-			}catch(IOException  e){
-				e.printStackTrace();
-			}
+//			Bitmap bmp1 = Bitmap.createScaledBitmap(temp1,256,256,true);
+//			String name1 = "pic"+picnum+".png";
+			
+			
+//			String dir = Environment.getExternalStorageDirectory()+"/osmpng/";
+//			File f1 =new File(dir,name1);
+//			log.warn("success+dir"+dir);
+//			try{
+//			f1.createNewFile();
+//			FileOutputStream out1 = new FileOutputStream(f1);
+//			bitmap.compress(Bitmap.CompressFormat.PNG, 90, out1);
+//			out1.flush();
+//			out1.close();
+//			log.warn("mytag:图片已保存"+picnum);
+//			}catch(IOException  e){
+//				log.warn("success+fail to create the folder");
+//				e.printStackTrace();
+//			}
 			
 			//int picblock = 3;//picblock的平方即将图片划分的块数
-			int columnum = cv.getWidth()/256;  
-			int rownum = cv.getHeight()/256;
-			int subpngnum = 1;
-			for(int i=0;i<rownum;i++){
-				for(int j=0;j<columnum;j++){
-					Rect r = new Rect(j*256, i*256, (j+1)*256, (i+1)*256);
-					Bitmap temp =cutBitmap(bmp,r,Config.ARGB_8888);
-					cv.setBitmap(temp);
-					
-					
-					String name = "pic"+picnum+"-"+subpngnum +".png";
-					File f =new File("/sdcard/osmpng/",name);
-					try{
-					f.createNewFile();
-					FileOutputStream out = new FileOutputStream(f);
-					temp.compress(Bitmap.CompressFormat.PNG, 90, out);
-					out.flush();
-					out.close();
-					//log.warn("mytag:图片已保存"+picnum+"-"+subpngnum);
-					}catch(IOException  e){
-						e.printStackTrace();
-					}
-					subpngnum = subpngnum+1;
-					cv.setBitmap(bmp);
-				}
-			}
-			picnum = picnum+1;
+//			int columnum = cv.getWidth()/256;  
+//			int rownum = cv.getHeight()/256;
+//			int subpngnum = 1;
+//			for(int i=0;i<rownum;i++){
+//				for(int j=0;j<columnum;j++){
+//					Rect r = new Rect(j*256, i*256, (j+1)*256, (i+1)*256);
+//					Bitmap temp =cutBitmap(bmp,r,Config.ARGB_8888);
+//					cv.setBitmap(temp);
+//					
+//					
+//					String name = "pic"+picnum+"-"+subpngnum +".png";
+//					File f =new File("/mnt/sdcard/osmpng/",name);
+//					try{
+//					f.createNewFile();
+//					FileOutputStream out = new FileOutputStream(f);
+//					temp.compress(Bitmap.CompressFormat.PNG, 90, out);
+//					out.flush();
+//					out.close();
+//					//log.warn("mytag:图片已保存"+picnum+"-"+subpngnum);
+//					}catch(IOException  e){
+//						e.printStackTrace();
+//					}
+//					subpngnum = subpngnum+1;
+//					cv.setBitmap(bmp);
+//				}
+//			}
+//			picnum = picnum+1;
 		}
 	}
 	
