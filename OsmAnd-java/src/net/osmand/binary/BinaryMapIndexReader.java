@@ -192,7 +192,10 @@ public class BinaryMapIndexReader {
 				mapIndex.length = readInt();
 				
 //				writeFileSdcard(dir,"MAPINDEX_FIELD"+ " "+mapIndex.length+"\n");
+				
 				mapIndex.filePointer = codedIS.getTotalBytesRead();
+				writeFileSdcard(dir,"init//6  shezhi mapIndex.filePointer"+ " "+mapIndex.filePointer+"\n");
+				
 				int oldLimit = codedIS.pushLimit(mapIndex.length);
 				readMapIndex(mapIndex, false);
 				basemap = basemap || mapIndex.isBaseMap();
@@ -686,6 +689,8 @@ public class BinaryMapIndexReader {
 					oldLimit = codedIS.pushLimit(length);
 					MapRoot mapRoot = readMapLevel(new MapRoot());
 					mapRoot.length = length;
+					
+					writeFileSdcard(dir,"readMapIndex//5  shezhi mapRoot.filePointer"+ " "+filePointer+"\n");
 					mapRoot.filePointer = filePointer;
 					index.getRoots().add(mapRoot);
 					codedIS.popLimit(oldLimit);
@@ -799,6 +804,9 @@ public class BinaryMapIndexReader {
 					// left, ... already initialized
 					r.length = length;
 					r.filePointer = filePointer;
+					
+					writeFileSdcard(dir,"readMapLevel//7  shezhi tree.filePointer"+ " "+filePointer+"\n");
+					
 					int oldLimit = codedIS.pushLimit(r.length);
 					readMapTreeBounds(r, root.left, root.right, root.top, root.bottom);
 					root.trees.add(r);
@@ -864,6 +872,8 @@ public class BinaryMapIndexReader {
 				break;
 			case MapDataBox.SHIFTTOMAPDATA_FIELD_NUMBER ://5
 				tree.mapDataBlock = readInt() + tree.filePointer;
+				
+				writeFileSdcard(dir,"readMapTreeBounds//5  shezhi tree.mapDataBlock"+ " "+tree.mapDataBlock+"\n");
 				
 				//writeFileSdcard(dir,"SHIFTTOMAPDATA_FIELD"+" "+tree.mapDataBlock+"\n");
 				break;
